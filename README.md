@@ -44,6 +44,12 @@ node scripts/make-icons.mjs
 npm run version:bump -- patch
 ```
 
+**UI screenshots** of every panel state (320 px and 420 px, light and dark) are in [`docs/screenshots/`](docs/screenshots). Regenerate them with `npx vite build && npx tsx tests/ui/harness/screenshot.ts` (uses Playwright + Chromium with a stubbed `chrome` API; fails on page errors or horizontal overflow).
+
+**Text-fragment links on real sites:** `NODE_USE_ENV_PROXY=1 npx tsx scripts/check-text-fragments.mts` (needs Playwright + full Chromium). Last run: Wikipedia, US Department of Labor and the Stanford Encyclopedia of Philosophy all scrolled to the passage.
+
+**Live LLM checks:** `npm run smoke:llm` checks that every golden claim plans to valid JSON in < 4 s (with translation, multiple-claim and normative handling), that refine questions point at real gaps in fixture result sets (all-US → region, all-correlational → strength, strong set → none), and that known fixture passages get the expected labels while injected instructions are ignored. Costs well under a cent.
+
 **Live smoke test.** Create `.env.local` (git-ignored):
 
 ```

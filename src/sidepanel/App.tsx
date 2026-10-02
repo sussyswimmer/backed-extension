@@ -326,7 +326,8 @@ export function App() {
         <Banners state={state} warnings={warnings} dismissed={dismissed} onDismiss={dismissWarning} onRetry={retry} />
         <RefinePanel
           state={state}
-          running={running}
+          // In the final "refining" stage (summaries + questions) the worker queues answers.
+          running={running && state.status !== 'refining'}
           pickedCount={picked.length}
           hasResults={hasResults}
           focusRef={refineRef}
