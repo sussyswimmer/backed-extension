@@ -1,7 +1,7 @@
 {
   "name": "backed",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Backed: find a real, verified source for any claim.",
   "type": "module",
   "scripts": {

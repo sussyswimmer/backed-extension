@@ -10,6 +10,17 @@ import { FRAME_CLOSE, type ContentRequest, type ContentToBackground, type FindSo
 import { SELECTION_BUTTON_KEY } from '../shared/storageKeys';
 import { grabDocsSelection } from './docs';
 
+const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
+
+/**
+ * Did this press/release look like a text selection? Docs in edit mode doesn't expose the
+ * highlighted text, so we infer it from the gesture: a drag across the text, a triple-click
+ * (paragraph), or a Shift+click that extends the selection.
+ */
+export function isSelectionGesture(g: { dx: number; dy: number; clicks: number; shift: boolean }): boolean {
+  return Math.hypot(g.dx, g.dy) > 8 || g.clicks >= 3 || g.shift;
+}
+
 const MIN_CHARS = 12;
 const MIN_WORDS = 3;
 const MAX_CHARS = 4000;
@@ -147,6 +158,11 @@ export function installBacked(): BackedUi {
   let buttonEnabled = true;
   let buttonEl: HTMLButtonElement | null = null;
   let buttonClaim = '';
+  /** How the button's text was found: read directly, or (Docs edit mode) to be copied on click. */
+  let buttonMethod: PageSelection['method'] = 'selection';
+  let buttonFromMirror = false;
+  /** Last text the user copied inside Google Docs (Cmd/Ctrl+C), as a fallback source. */
+  let lastDocsCopy: { text: string; at: number } | null = null;
   let buttonAnchor: Rect | null = null;
   let frameWrap: HTMLDivElement | null = null;
   let frameEl: HTMLIFrameElement | null = null;
@@ -200,6 +216,25 @@ export function installBacked(): BackedUi {
     buttonEl = null;
   }
 
+  function setButtonLabel(btn: HTMLButtonElement, label: string) {
+    const textNode = Array.from(btn.childNodes).find((n) => n.nodeType === 3);
+    if (textNode) textNode.nodeValue = label;
+  }
+
+  /**
+   * The highlighted Docs text right now: Docs' hidden copy, a copy Docs makes for us, or — only if
+   * the user copied *after* `since` — what they copied themselves. Never older clipboard content.
+   */
+  function readDocsSelectionNow(since: number): string {
+    const mirror = docsSelectionText();
+    if (isClaimLike(mirror)) return mirror.trim();
+    const grabbed = grabDocsSelection().text.trim();
+    if (grabbed) return grabbed;
+    if (lastDocsCopy && lastDocsCopy.at >= since) return lastDocsCopy.text;
+    return '';
+  }
+  let buttonShownAt = 0;
+
   /** Window scroll plus the Docs editor's own scroll container, as one number. */
   function scrollPositions(): number {
     const editor = IS_GOOGLE_DOCS ? document.querySelector('.kix-appview-editor') : null;
@@ -247,7 +282,15 @@ export function installBacked(): BackedUi {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const claim = buttonClaim;
+      let claim = buttonClaim;
+      if (!claim && buttonMethod === 'docs') {
+        // Docs edit mode: get the highlighted text now, the way Cmd/Ctrl+C would.
+        claim = readDocsSelectionNow(buttonShownAt);
+        if (!isClaimLike(claim)) {
+          setButtonLabel(btn, claim ? 'Select a full sentence' : `Press ${IS_MAC ? '⌘C' : 'Ctrl+C'}, then click`);
+          return;
+        }
+      }
       const anchor = buttonAnchor;
       hideButton();
       void findSource(claim, anchor);
@@ -256,6 +299,8 @@ export function installBacked(): BackedUi {
     buttonEl = btn;
     buttonScroll = scrollPositions();
     buttonClaim = sel.text;
+    buttonMethod = sel.method;
+    buttonShownAt = Date.now();
     buttonAnchor = sel.box ?? sel.end;
     requestAnimationFrame(() => {
       btn.style.opacity = '1';
@@ -318,10 +363,10 @@ export function installBacked(): BackedUi {
 
   /* ---------------------------- page events ---------------------------- */
 
-  const maybeShowButton = (mouse: { x: number; y: number } | null) => {
+  const maybeShowButton = (mouse: { x: number; y: number } | null, gesture = false) => {
     if (retired || orphaned() || !buttonEnabled || frameEl) return;
     if (IS_GOOGLE_DOCS) {
-      checkDocsSelection(mouse, 0);
+      checkDocsSelection(mouse, 0, gesture);
       return;
     }
     const sel = readSelection(isOurs);
@@ -336,21 +381,39 @@ export function installBacked(): BackedUi {
   // Docs fills its hidden selection a moment after mouseup/keyup: look a few times.
   const DOCS_RETRIES = [40, 120, 300, 700];
   let docsCheck = 0;
-  function checkDocsSelection(mouse: { x: number; y: number } | null, attempt: number) {
+  function docsAnchor(mouse: { x: number; y: number } | null): { point: { x: number; y: number }; anchor: Rect } {
+    const caret = docsCaretRect();
+    const point = mouse ?? (caret ? { x: caret.right, y: caret.top } : { x: window.innerWidth / 2, y: 140 });
+    return { point, anchor: { top: point.y - 10, bottom: point.y + 10, left: point.x - 200, right: point.x } };
+  }
+
+  function checkDocsSelection(mouse: { x: number; y: number } | null, attempt: number, gesture: boolean) {
     const id = ++docsCheck;
     const run = (i: number) => {
-      if (id !== docsCheck) return;
+      if (id !== docsCheck || frameEl) return;
       const text = docsSelectionText();
       if (isClaimLike(text)) {
-        const caret = docsCaretRect();
-        const point = mouse ?? (caret ? { x: caret.right, y: caret.top } : null);
-        const anchor: Rect | null = point ? { top: point.y - 10, bottom: point.y + 10, left: point.x - 200, right: point.x } : null;
+        // View mode (and some edit modes): Docs hands over the exact text.
+        if (buttonEl && buttonMethod === 'docs') {
+          buttonClaim = text;
+          buttonFromMirror = true;
+          return;
+        }
+        const { point, anchor } = docsAnchor(mouse);
         lastAnchor = anchor;
         showButton({ text, end: null, box: anchor, method: 'docs' }, point);
+        buttonFromMirror = true;
         return;
       }
+      if (gesture && !buttonEl) {
+        // Edit mode: the text isn't readable yet. Show the button now; read the text on click.
+        const { point, anchor } = docsAnchor(mouse);
+        lastAnchor = anchor;
+        showButton({ text: '', end: null, box: anchor, method: 'docs' }, point);
+        buttonFromMirror = false;
+      }
       if (i + 1 < DOCS_RETRIES.length) setTimeout(() => run(i + 1), DOCS_RETRIES[i + 1]! - DOCS_RETRIES[i]!);
-      else hideButton();
+      else if (!gesture) hideButton();
     };
     setTimeout(() => run(attempt), DOCS_RETRIES[attempt]);
   }
@@ -363,15 +426,21 @@ export function installBacked(): BackedUi {
     if (!d || d === docsFrameDoc) return;
     docsFrameDoc = d;
     d.addEventListener('keyup', (e) => {
-      if (e.shiftKey || e.key === 'Shift' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a')) maybeShowButton(null);
+      const arrows = /^(Arrow|Home|End|Page)/.test(e.key);
+      if ((e.shiftKey && arrows) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a')) maybeShowButton(null, true);
     });
     d.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (buttonEl) hideButton();
         else if (frameEl) closePopup();
-      } else if (!e.shiftKey && e.key !== 'Shift') {
+      } else if (!e.shiftKey && !e.metaKey && !e.ctrlKey && !['Shift', 'Meta', 'Control', 'Alt'].includes(e.key)) {
         hideButton(); // typing or moving the caret clears the selection
       }
+    });
+    // Remember what the user copies in Docs (Cmd/Ctrl+C): a fallback when the text can't be read.
+    d.defaultView?.addEventListener('copy', (e) => {
+      const t = e.clipboardData?.getData('text/plain')?.trim();
+      if (t) lastDocsCopy = { text: t, at: Date.now() };
     });
   }
   // Safety net for Docs: watch the hidden selection itself, so the button shows up however the
@@ -383,10 +452,15 @@ export function installBacked(): BackedUi {
     if (text === polled) return;
     polled = text;
     if (!isClaimLike(text)) {
-      if (buttonEl && !text.trim()) hideButton();
+      if (buttonEl && buttonFromMirror && !text.trim()) hideButton();
       return;
     }
     if (buttonEl && buttonClaim === text) return;
+    if (buttonEl && buttonMethod === 'docs') {
+      buttonClaim = text;
+      buttonFromMirror = true;
+      return;
+    }
     if (orphaned()) return;
     const recent = lastPointer && Date.now() - lastPointer.at < 3000 ? lastPointer : null;
     const caret = docsCaretRect();
@@ -395,6 +469,7 @@ export function installBacked(): BackedUi {
     const anchor: Rect | null = point ? { top: point.y - 10, bottom: point.y + 10, left: point.x - 200, right: point.x } : null;
     lastAnchor = anchor;
     showButton({ text, end: null, box: anchor, method: 'docs' }, point);
+    buttonFromMirror = true;
   }
   if (IS_GOOGLE_DOCS) {
     watchDocsFrame();
@@ -415,7 +490,9 @@ export function installBacked(): BackedUi {
     watchDocsFrame();
     lastPointer = { x: e.clientX, y: e.clientY, at: now };
     const mouse = { x: e.clientX, y: e.clientY };
-    setTimeout(() => maybeShowButton(mouse), 0);
+    const gesture =
+      IS_GOOGLE_DOCS && !!press?.inText && isSelectionGesture({ dx: e.clientX - press.x, dy: e.clientY - press.y, clicks: clicks.n, shift: e.shiftKey });
+    setTimeout(() => maybeShowButton(mouse, gesture), 0);
   };
   window.addEventListener('pointerup', onRelease, true);
   window.addEventListener('mouseup', onRelease, true);
@@ -426,8 +503,20 @@ export function installBacked(): BackedUi {
     },
     true,
   );
+  // Track presses in the Docs text area to recognise drags, triple-clicks and Shift+clicks.
+  let press: { x: number; y: number; inText: boolean } | null = null;
+  let clicks = { n: 0, at: 0, x: -1, y: -1, type: '' };
   const onPress = (e: Event) => {
-    if (!eventIsOurs(e)) hideButton();
+    if (eventIsOurs(e)) return;
+    hideButton();
+    if (!IS_GOOGLE_DOCS || !(e instanceof MouseEvent) || e.button !== 0) return;
+    const now = Date.now();
+    // pointerdown + mousedown for the same press count once.
+    if (e.type !== clicks.type && now - clicks.at < 80 && e.clientX === clicks.x && e.clientY === clicks.y) return;
+    const near = Math.hypot(e.clientX - clicks.x, e.clientY - clicks.y) < 6 && now - clicks.at < 500;
+    clicks = { n: near ? clicks.n + 1 : 1, at: now, x: e.clientX, y: e.clientY, type: e.type };
+    const target = e.target instanceof Element ? e.target : null;
+    press = { x: e.clientX, y: e.clientY, inText: !!target?.closest('.kix-appview-editor') };
   };
   window.addEventListener('pointerdown', onPress, true);
   window.addEventListener('mousedown', onPress, true);
@@ -480,8 +569,8 @@ export function installBacked(): BackedUi {
       case 'GET_SELECTION': {
         let res: SelectionResponse;
         if (IS_GOOGLE_DOCS) {
-          const d = grabDocsSelection();
-          res = { text: d.text, method: d.method, isGoogleDocs: true, panelOpen: !!frameEl };
+          const text = readDocsSelectionNow(Date.now() - 15_000);
+          res = { text, method: text ? 'docs' : 'none', isGoogleDocs: true, panelOpen: !!frameEl };
         } else {
           const sel = readSelection(isOurs);
           if (sel) lastAnchor = sel.box ?? sel.end;
