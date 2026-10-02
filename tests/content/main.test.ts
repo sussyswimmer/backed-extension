@@ -83,6 +83,14 @@ describe('Find a source button', () => {
     expect(ui.button()).toBeNull();
   });
 
+  it('also appears when the page cancels mouse events and only pointer events arrive', async () => {
+    select('Minimum wage hikes do not cost jobs.');
+    const PE = (window as unknown as { PointerEvent?: typeof MouseEvent }).PointerEvent ?? MouseEvent;
+    window.dispatchEvent(new PE('pointerup', { bubbles: true, clientX: 80, clientY: 90, button: 0 }));
+    await new Promise((r) => setTimeout(r, 5));
+    expect(ui.button()?.textContent).toBe('Find a source');
+  });
+
   it('hides on Escape and on clicking elsewhere; Escape also closes the popup', async () => {
     select('Minimum wage hikes do not cost jobs.');
     await mouseUp();

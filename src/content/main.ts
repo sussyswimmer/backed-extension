@@ -200,6 +200,14 @@ export function installBacked(): BackedUi {
     buttonEl = null;
   }
 
+  /** Window scroll plus the Docs editor's own scroll container, as one number. */
+  function scrollPositions(): number {
+    const editor = IS_GOOGLE_DOCS ? document.querySelector('.kix-appview-editor') : null;
+    return window.scrollY + window.scrollX + (editor ? editor.scrollTop + editor.scrollLeft : 0);
+  }
+  let buttonScroll = 0;
+  let lastPointer: { x: number; y: number; at: number } | null = null;
+
   function showButton(sel: PageSelection, mouse: { x: number; y: number } | null) {
     hideButton();
     mount();
@@ -235,6 +243,7 @@ export function installBacked(): BackedUi {
     btn.append(svgIcon(), document.createTextNode('Find a source'));
     // Keep the page's selection when the button is pressed.
     btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('pointerdown', (e) => e.stopPropagation());
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -245,6 +254,7 @@ export function installBacked(): BackedUi {
     });
     root.appendChild(btn);
     buttonEl = btn;
+    buttonScroll = scrollPositions();
     buttonClaim = sel.text;
     buttonAnchor = sel.box ?? sel.end;
     requestAnimationFrame(() => {
@@ -324,7 +334,7 @@ export function installBacked(): BackedUi {
   };
 
   // Docs fills its hidden selection a moment after mouseup/keyup: look a few times.
-  const DOCS_RETRIES = [40, 120, 300];
+  const DOCS_RETRIES = [40, 120, 300, 700];
   let docsCheck = 0;
   function checkDocsSelection(mouse: { x: number; y: number } | null, attempt: number) {
     const id = ++docsCheck;
@@ -364,21 +374,51 @@ export function installBacked(): BackedUi {
       }
     });
   }
+  // Safety net for Docs: watch the hidden selection itself, so the button shows up however the
+  // text was selected (mouse, keyboard, double-click, Docs' own menus) even if no event reached us.
+  let polled = '';
+  function pollDocsSelection() {
+    if (retired || frameEl || !buttonEnabled || !document.hasFocus()) return;
+    const text = docsSelectionText();
+    if (text === polled) return;
+    polled = text;
+    if (!isClaimLike(text)) {
+      if (buttonEl && !text.trim()) hideButton();
+      return;
+    }
+    if (buttonEl && buttonClaim === text) return;
+    if (orphaned()) return;
+    const recent = lastPointer && Date.now() - lastPointer.at < 3000 ? lastPointer : null;
+    const caret = docsCaretRect();
+    // Last resort: top of the visible document, centred.
+    const point = recent ?? (caret ? { x: caret.right, y: caret.top } : { x: window.innerWidth / 2, y: 140 });
+    const anchor: Rect | null = point ? { top: point.y - 10, bottom: point.y + 10, left: point.x - 200, right: point.x } : null;
+    lastAnchor = anchor;
+    showButton({ text, end: null, box: anchor, method: 'docs' }, point);
+  }
   if (IS_GOOGLE_DOCS) {
     watchDocsFrame();
     setInterval(watchDocsFrame, 2000);
+    setInterval(pollDocsSelection, 400);
   }
 
-  document.addEventListener(
-    'mouseup',
-    (e) => {
-      if (eventIsOurs(e) || e.button !== 0) return;
-      watchDocsFrame();
-      const mouse = { x: e.clientX, y: e.clientY };
-      setTimeout(() => maybeShowButton(mouse), 0);
-    },
-    true,
-  );
+  // Pointer release. Listen for pointerup as well as mouseup: editors like Google Docs (edit mode)
+  // cancel pointerdown, which stops the browser from sending mouse events at all.
+  let lastRelease = { type: '', at: 0, x: -1, y: -1 };
+  const onRelease = (e: MouseEvent) => {
+    if (eventIsOurs(e) || e.button !== 0) return;
+    const now = Date.now();
+    // The same click arrives as pointerup and then mouseup: handle it once.
+    const sameClick = e.type !== lastRelease.type && now - lastRelease.at < 80 && e.clientX === lastRelease.x && e.clientY === lastRelease.y;
+    lastRelease = { type: e.type, at: now, x: e.clientX, y: e.clientY };
+    if (sameClick) return;
+    watchDocsFrame();
+    lastPointer = { x: e.clientX, y: e.clientY, at: now };
+    const mouse = { x: e.clientX, y: e.clientY };
+    setTimeout(() => maybeShowButton(mouse), 0);
+  };
+  window.addEventListener('pointerup', onRelease, true);
+  window.addEventListener('mouseup', onRelease, true);
   document.addEventListener(
     'keyup',
     (e) => {
@@ -386,19 +426,26 @@ export function installBacked(): BackedUi {
     },
     true,
   );
-  document.addEventListener(
-    'mousedown',
-    (e) => {
-      if (!eventIsOurs(e)) hideButton();
-    },
-    true,
-  );
+  const onPress = (e: Event) => {
+    if (!eventIsOurs(e)) hideButton();
+  };
+  window.addEventListener('pointerdown', onPress, true);
+  window.addEventListener('mousedown', onPress, true);
   document.addEventListener('selectionchange', () => {
     if (IS_GOOGLE_DOCS) return; // Docs never has a DOM selection; its own handlers cover it
     const sel = document.getSelection();
     if (buttonEl && (!sel || sel.isCollapsed) && !(document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLInputElement)) hideButton();
   });
-  window.addEventListener('scroll', () => hideButton(), true);
+  // Hide on scroll only when the page really moved (Docs fires small scroll events on selection).
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (!buttonEl) return;
+      const pos = scrollPositions();
+      if (Math.abs(pos - buttonScroll) > 24) hideButton();
+    },
+    true,
+  );
   window.addEventListener('resize', () => {
     hideButton();
     if (frameWrap) {
