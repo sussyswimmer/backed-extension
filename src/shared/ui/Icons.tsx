@@ -16,7 +16,7 @@ function Svg({ className, title, children }: IconProps & { children: ReactNode }
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={className ?? 'h-4 w-4'}
+      className={`shrink-0 ${className ?? 'h-4 w-4'}`}
       aria-hidden={title ? undefined : true}
       role={title ? 'img' : undefined}
       focusable="false"

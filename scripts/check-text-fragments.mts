@@ -13,7 +13,20 @@ import { countWords } from '../src/shared/text';
 import { looksBlocked } from '../src/background/extract/getText';
 
 const require = createRequire(import.meta.url);
-type PW = typeof import('playwright');
+// Playwright isn't a project dependency; type just the calls used here.
+interface PwPage {
+  goto(url: string, opts?: { waitUntil?: 'load'; timeout?: number }): Promise<unknown>;
+  waitForTimeout(ms: number): Promise<void>;
+  evaluate<R, A>(fn: (arg: A) => R, arg: A): Promise<R>;
+  close(): Promise<void>;
+}
+interface PwBrowser {
+  newContext(opts?: { viewport?: { width: number; height: number }; ignoreHTTPSErrors?: boolean }): Promise<{ newPage(): Promise<PwPage> }>;
+  close(): Promise<void>;
+}
+interface PW {
+  chromium: { launch(opts?: { channel?: string; proxy?: { server: string } }): Promise<PwBrowser> };
+}
 let pw: PW;
 try {
   pw = require('playwright') as PW;
