@@ -31,7 +31,27 @@ export interface PageSelection {
   /** Where the selection ends (for the button) and its overall box (for the popup). */
   end: Rect | null;
   box: Rect | null;
-  method: 'selection' | 'input';
+  method: 'selection' | 'input' | 'docs';
+}
+
+/**
+ * Google Docs draws text on a canvas, so the page has no DOM selection. But Docs mirrors the
+ * selected text into a hidden contenteditable inside `iframe.docs-texteventtarget-iframe`
+ * (checked on a live Doc, Oct 2026); its selection is exactly what the user highlighted.
+ */
+export function docsSelectionText(doc: Document = document): string {
+  const frame = doc.querySelector<HTMLIFrameElement>('iframe.docs-texteventtarget-iframe');
+  try {
+    return frame?.contentWindow?.getSelection()?.toString() ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/** Where Docs shows its text caret (the end of a keyboard selection). */
+function docsCaretRect(): Rect | null {
+  const caret = document.querySelector('.kix-cursor-caret');
+  return caret ? toRect(caret.getBoundingClientRect()) : null;
 }
 
 /** Text worth searching: a few words, not a whole page. */
@@ -132,7 +152,29 @@ export function installBacked(): BackedUi {
   let frameEl: HTMLIFrameElement | null = null;
   let lastAnchor: Rect | null = null;
 
+  // After the extension is reloaded or updated, this copy of the script is cut off from it
+  // (chrome.runtime.id becomes undefined). The new copy takes over; this one removes itself.
+  const orphaned = () => {
+    let gone = true;
+    try {
+      gone = !chrome.runtime?.id;
+    } catch {
+      gone = true;
+    }
+    if (gone) host.remove();
+    return gone;
+  };
+  // A newer copy announces itself; older copies step aside.
+  let retired = false;
+  document.dispatchEvent(new CustomEvent('backed:takeover'));
+  document.addEventListener('backed:takeover', () => {
+    host.remove();
+    retired = true;
+  });
+  for (const old of Array.from(document.querySelectorAll('backed-extension-ui'))) old.remove();
+
   const mount = () => {
+    if (retired) return;
     if (!host.isConnected) (document.body ?? document.documentElement).appendChild(host);
   };
   const isOurs = (n: Node | null) => !!n && (n === host || host.contains(n));
@@ -165,9 +207,11 @@ export function installBacked(): BackedUi {
     if (!at) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    // In Google Docs the button goes above the pointer: Docs shows its own bubble just below.
+    const top = sel.method === 'docs' ? (at.y - 44 >= 4 ? at.y - 44 : at.y + 22) : at.y + 6;
     const btn = styled('button', {
       position: 'fixed',
-      top: `${clamp(at.y + 6, 4, vh - 40)}px`,
+      top: `${clamp(top, 4, vh - 40)}px`,
       left: `${clamp(at.x - 12, 4, vw - 150)}px`,
       zIndex: TOP_Z,
       display: 'flex',
@@ -265,7 +309,11 @@ export function installBacked(): BackedUi {
   /* ---------------------------- page events ---------------------------- */
 
   const maybeShowButton = (mouse: { x: number; y: number } | null) => {
-    if (!buttonEnabled || frameEl) return;
+    if (retired || orphaned() || !buttonEnabled || frameEl) return;
+    if (IS_GOOGLE_DOCS) {
+      checkDocsSelection(mouse, 0);
+      return;
+    }
     const sel = readSelection(isOurs);
     if (!sel || !isClaimLike(sel.text)) {
       hideButton();
@@ -275,10 +323,57 @@ export function installBacked(): BackedUi {
     showButton(sel, mouse);
   };
 
+  // Docs fills its hidden selection a moment after mouseup/keyup: look a few times.
+  const DOCS_RETRIES = [40, 120, 300];
+  let docsCheck = 0;
+  function checkDocsSelection(mouse: { x: number; y: number } | null, attempt: number) {
+    const id = ++docsCheck;
+    const run = (i: number) => {
+      if (id !== docsCheck) return;
+      const text = docsSelectionText();
+      if (isClaimLike(text)) {
+        const caret = docsCaretRect();
+        const point = mouse ?? (caret ? { x: caret.right, y: caret.top } : null);
+        const anchor: Rect | null = point ? { top: point.y - 10, bottom: point.y + 10, left: point.x - 200, right: point.x } : null;
+        lastAnchor = anchor;
+        showButton({ text, end: null, box: anchor, method: 'docs' }, point);
+        return;
+      }
+      if (i + 1 < DOCS_RETRIES.length) setTimeout(() => run(i + 1), DOCS_RETRIES[i + 1]! - DOCS_RETRIES[i]!);
+      else hideButton();
+    };
+    setTimeout(() => run(attempt), DOCS_RETRIES[attempt]);
+  }
+
+  // Keyboard selections in Docs happen inside its hidden text iframe; listen there too.
+  let docsFrameDoc: Document | null = null;
+  function watchDocsFrame() {
+    if (!IS_GOOGLE_DOCS) return;
+    const d = document.querySelector<HTMLIFrameElement>('iframe.docs-texteventtarget-iframe')?.contentDocument ?? null;
+    if (!d || d === docsFrameDoc) return;
+    docsFrameDoc = d;
+    d.addEventListener('keyup', (e) => {
+      if (e.shiftKey || e.key === 'Shift' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a')) maybeShowButton(null);
+    });
+    d.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (buttonEl) hideButton();
+        else if (frameEl) closePopup();
+      } else if (!e.shiftKey && e.key !== 'Shift') {
+        hideButton(); // typing or moving the caret clears the selection
+      }
+    });
+  }
+  if (IS_GOOGLE_DOCS) {
+    watchDocsFrame();
+    setInterval(watchDocsFrame, 2000);
+  }
+
   document.addEventListener(
     'mouseup',
     (e) => {
       if (eventIsOurs(e) || e.button !== 0) return;
+      watchDocsFrame();
       const mouse = { x: e.clientX, y: e.clientY };
       setTimeout(() => maybeShowButton(mouse), 0);
     },
@@ -299,6 +394,7 @@ export function installBacked(): BackedUi {
     true,
   );
   document.addEventListener('selectionchange', () => {
+    if (IS_GOOGLE_DOCS) return; // Docs never has a DOM selection; its own handlers cover it
     const sel = document.getSelection();
     if (buttonEl && (!sel || sel.isCollapsed) && !(document.activeElement instanceof HTMLTextAreaElement || document.activeElement instanceof HTMLInputElement)) hideButton();
   });

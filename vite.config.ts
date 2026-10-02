@@ -10,8 +10,9 @@ export default defineConfig({
     target: 'chrome116',
     sourcemap: false,
     rollupOptions: {
-      // The offscreen page isn't referenced from the manifest, so add it as an entry.
-      input: { offscreen: 'src/offscreen/offscreen.html' },
+      // Pages the manifest doesn't reference directly must be listed, or they're copied unbuilt:
+      // the offscreen document, and the popup page the content script shows inside web pages.
+      input: { offscreen: 'src/offscreen/offscreen.html', popup: 'src/popup/index.html' },
     },
   },
   server: { port: 5173, strictPort: true, hmr: { port: 5173 } },

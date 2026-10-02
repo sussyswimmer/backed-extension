@@ -154,3 +154,22 @@ describe('shortcut messages from the worker', () => {
     expect(ask({ type: 'GET_SELECTION' })).toMatchObject({ text: 'remote work makes people more productive.', method: 'input' });
   });
 });
+
+describe('Google Docs hidden selection', () => {
+  it('reads the text Docs mirrors into its hidden text iframe', () => {
+    document.body.innerHTML = '<iframe class="docs-texteventtarget-iframe"></iframe>';
+    const frame = document.querySelector('iframe')!;
+    const fdoc = frame.contentDocument!;
+    fdoc.body.innerHTML = '<div contenteditable="true" id="e">PJM Interconnection also has a capacity market</div>';
+    const range = fdoc.createRange();
+    range.selectNodeContents(fdoc.getElementById('e')!);
+    frame.contentWindow!.getSelection()!.removeAllRanges();
+    frame.contentWindow!.getSelection()!.addRange(range);
+    expect(mod.docsSelectionText()).toBe('PJM Interconnection also has a capacity market');
+  });
+
+  it('returns nothing outside Docs', () => {
+    document.body.innerHTML = '<p>no docs here</p>';
+    expect(mod.docsSelectionText()).toBe('');
+  });
+});

@@ -14,7 +14,7 @@ One user (me), three jobs. The chosen format only changes what "Copy as…" prod
 - **Debate cards** — tag + debate cite + verbatim passage with the matching sentences bolded/underlined. Pushback section matters most here.
 
 ## Core user flow (search first, ask after)
-1. **Input** — **no side panel; Backed is a popup.** Highlight text on any page → a small "Find a source" button appears → click it and the popup opens next to the text. Or press the hotkey (`Alt+Shift+E`, customizable), which also works when you **highlight a sentence in Google Docs**. The toolbar icon opens the same popup with a text box; right-click "Find a source for this" also works. Copy format remembered from last time (Paper / Essay / Debate).
+1. **Input** — Highlight text on any page **including Google Docs** → a small "Find a source" button appears → click it and a popup opens next to the text. Or press the hotkey (`Alt+Shift+E`, customizable). **The toolbar icon opens the sidebar** (side panel) with a text box and history. Right-click "Find a source for this" also works. Copy format remembered from last time (Paper / Essay / Debate).
 2. **Quick plan** — DeepSeek turns the raw claim into a query plan (paraphrases, keywords, per-source queries) with **no questions asked**.
 3. **First search** — parallel source adapters: OpenAlex, Semantic Scholar, arXiv, and Exa (semantic web search for general web, news, think tanks, and gov/IGO domains).
 4. **Extract & match** — get page text (Exa contents or our own fetch; HTML + PDF), chunk, pre-rank locally (BM25), then DeepSeek labels each passage: `direct`, `paraphrase`, `partial`, `contradicts`, `irrelevant`. Verified results stream into the panel.
@@ -34,7 +34,7 @@ One user (me), three jobs. The chosen format only changes what "Copy as…" prod
 
 ## Stack
 - Vite + TypeScript, MV3 (use `@crxjs/vite-plugin`)
-- React + Tailwind for the popup (toolbar popup + in-page card) and options page
+- React + Tailwind for the popup UI (in-page card + sidebar) and options page
 - Service worker = orchestrator (all network calls live here; it bypasses CORS via `host_permissions`)
 - `@mozilla/readability` for HTML extraction, `pdfjs-dist` for PDFs — both in an **offscreen document** (needs DOM)
 - Content script on every page: the "Find a source" button on highlighted text, the in-page popup (an iframe of the popup page, token-guarded), and Google Docs selection grabbing

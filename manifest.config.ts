@@ -6,26 +6,25 @@ export default defineManifest({
   name: 'Backed',
   version: pkg.version,
   description: 'Find a real, verified source for any claim — with the exact quotation.',
-  // 127+: chrome.action.openPopup() for pages where the in-page popup can't run.
-  minimum_chrome_version: '127',
+  minimum_chrome_version: '116',
   icons: {
     16: 'public/icons/icon16.png',
     32: 'public/icons/icon32.png',
     48: 'public/icons/icon48.png',
     128: 'public/icons/icon128.png',
   },
-  // Toolbar icon → the same UI as Chrome's normal extension popup. No side panel.
+  // Toolbar icon → the sidebar. Highlighting text or the shortcut → the in-page popup.
   action: {
     default_title: 'Backed — find a source',
-    default_popup: 'src/popup/index.html',
     default_icon: {
       16: 'public/icons/icon16.png',
       32: 'public/icons/icon32.png',
     },
   },
+  side_panel: { default_path: 'src/popup/sidepanel.html' },
   options_page: 'src/options/index.html',
   background: { service_worker: 'src/background/index.ts', type: 'module' },
-  permissions: ['storage', 'contextMenus', 'offscreen', 'activeTab', 'scripting', 'clipboardRead', 'clipboardWrite'],
+  permissions: ['storage', 'sidePanel', 'contextMenus', 'offscreen', 'activeTab', 'scripting', 'clipboardRead', 'clipboardWrite'],
   // <all_urls>: the "Find a source" button runs on every page, and the worker downloads the pages
   // and PDFs it found so every quotation can be checked against the real text.
   host_permissions: ['<all_urls>'],

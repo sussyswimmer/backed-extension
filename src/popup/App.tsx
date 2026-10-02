@@ -6,7 +6,7 @@ import { Spinner } from '../shared/ui/Icons';
 import { isEditableTarget, keyAction, type KeyContext } from './lib/keyboard';
 import { displayClaim, displayLists, isActive, isEmptyResult, pickedResults, visibleWarnings, type DebateTab } from './lib/view';
 import { usePanelPort } from './usePanelPort';
-import { closePopup, isFramed } from './embed';
+import { closePopup, isFramed, isSidePanel } from './embed';
 
 /** Inside a web page, show nothing until the service worker has accepted this popup's token. */
 const FRAMED = isFramed();
@@ -215,7 +215,9 @@ export function App() {
       );
       if (!action) return;
       e.preventDefault();
-      if (action.type === 'close') closePopup();
+      if (action.type === 'close') {
+        if (!isSidePanel()) closePopup(); // Esc doesn't close the sidebar
+      }
       else if (action.type === 'togglePick') {
         const r = orderedRef.current[action.index];
         if (r) send({ type: 'TOGGLE_PICK', candidateId: r.candidateId });

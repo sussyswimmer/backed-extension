@@ -19,15 +19,14 @@ npm run build          # → dist/
 
 ## Use
 
-Backed never takes over the side of your screen. It opens as a small popup only when you ask:
-
-- **Highlight text on any page** → a small **Find a source** button appears next to it. Click it and the Backed popup opens right there and starts searching.
+- **Highlight text on any page, including Google Docs** → a small **Find a source** button appears next to it (in Docs, just above where you let go of the mouse, so it doesn't cover Docs' own bubble). Click it and the Backed popup opens right there and starts searching.
 - **Keyboard shortcut** (default **Alt+Shift+E**; change it at `chrome://extensions/shortcuts` or Options → Change shortcut) → searches whatever is highlighted and opens the popup. With nothing highlighted it opens or closes the popup.
-- **Google Docs:** Docs draws text on a canvas, so the highlight button can't see your selection there. Highlight a sentence and press the shortcut. If Docs won't hand over the selection, Backed reads the clipboard; if that's empty it asks you to copy the sentence first.
-- **Toolbar icon** → the same popup in Chrome's normal extension popup (type a claim, or open History). Pages where extensions can't run (`chrome://` pages, the Web Store) also use this.
+- **Toolbar icon** → opens Backed in the **sidebar** (type a claim, see the current search, or open History). Pages where extensions can't run (`chrome://` pages, the Web Store) also use the sidebar.
 - **Right-click** selected text → **Find a source for this** works too.
 
-Close the popup with **×** or **Esc**. A search keeps running in the background; press the shortcut again to reopen it. Don't want the highlight button? Turn it off in Options → Popup and use only the shortcut.
+Close the popup with **×** or **Esc**. A search keeps running in the background; press the shortcut again (or open the sidebar) to see it. Don't want the highlight button? Turn it off in Options → Popup and use only the shortcut.
+
+After installing or updating Backed, tabs that were already open get the button automatically — no refresh needed.
 
 Results appear as they're verified (Support / Pushback). Then Backed asks 1–3 questions about gaps in what it found ("These are all US studies — want another country?"). Answer to search again (up to 3 rounds), or just tap **Use this** on the sources that fit and **Make output**: each picked source shows its link, an AI summary (labelled), and the verified quotation, with **Copy as…** citation (APA 7 / Chicago / MLA 9), in-text citation, debate card (rich text for Google Docs/Word), or link + summary + quote. Finished jobs are kept in **History**.
 
@@ -50,6 +49,8 @@ npm run version:bump -- patch
 ```
 
 **UI screenshots** of every popup state (320 px and 420 px, light and dark) are in [`docs/screenshots/`](docs/screenshots). Regenerate them with `npx vite build && npx tsx tests/ui/harness/screenshot.ts` (uses Playwright + Chromium with a stubbed `chrome` API; fails on page errors or horizontal overflow).
+
+**Real Google Docs check:** `npx vite build && NODE_USE_ENV_PROXY=1 npx tsx tests/ui/harness/e2e-docs.mts` opens a public Google Doc with the built extension, selects a paragraph, and checks the button appears and the popup shows the selected text (`docs/screenshots/docs-*.png`). Google Docs draws text on a canvas, so there's no normal page selection; Backed reads the copy of the selection Docs keeps in its hidden text-input frame (`iframe.docs-texteventtarget-iframe`).
 
 **Real-extension check:** `npx vite build && npx tsx tests/ui/harness/e2e-popup.mts` loads the built extension into Chromium, highlights text on a page, clicks **Find a source**, and checks the in-page popup opens, connects and closes with Esc, and that a page embedding the popup page itself gets nothing (`docs/screenshots/popup-*.png`).
 
@@ -119,7 +120,7 @@ The briefs were written before some APIs changed; I checked current docs (Oct 20
 - **Cost cap is per search round** (the initial search and each refine search). At current Exa prices (~$0.005 per search + $0.001 per page of text) four Exa adapters alone cost ~$0.03, so a whole multi-round job can't stay under $0.05. To keep each round well under the cap, Exa returns 3 results per adapter by default and the counter-view search goes through Exa only in Debate mode or when you ask for the other side (it always goes through OpenAlex). Run `npm run smoke` to see real numbers and adjust in Options.
 - **Brief 01 wasn't provided**; the scaffold follows CLAUDE.md (stack, layout, conventions). Citation formatters live in `src/shared/cite/` (not `background/cite/`) because the popup re-formats instantly on mode switch.
 - **A source with passages on both sides** is shown on your side (Support, or Pushback if you asked for the counter view) unless the other side's passage is much stronger.
-- **No side panel.** Backed is a popup: a small "Find a source" button on highlighted text and a keyboard shortcut open an in-page card (an iframe of the extension's popup page in a closed shadow root); the toolbar icon opens the same UI as a normal extension popup. Because the "Find a source" button runs on every page, `<all_urls>` is a regular host permission rather than an optional one requested at first search. The popup page has to be web-accessible so it can appear inside pages; it only gets data with a one-time token the service worker gives its own content script, so a website embedding it gets nothing. The content script never reads the settings object that holds your keys.
+- **Popup on highlight, sidebar on the toolbar icon.** A small "Find a source" button on highlighted text and the keyboard shortcut open an in-page card (an iframe of the extension's popup page in a closed shadow root); the toolbar icon opens the same UI in Chrome's side panel. Because the "Find a source" button runs on every page, `<all_urls>` is a regular host permission rather than an optional one requested at first search. The popup page has to be web-accessible so it can appear inside pages; it only gets data with a one-time token the service worker gives its own content script, so a website embedding it gets nothing. The content script never reads the settings object that holds your keys.
 - **Esc closes the popup** (the search keeps running in the background); the Stop button stops a search.
 
 ## Not verifiable here

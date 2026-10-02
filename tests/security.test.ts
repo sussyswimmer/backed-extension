@@ -8,6 +8,7 @@ import { newJobState } from '../src/background/pipeline';
 import { redactSecrets } from '../src/shared/settings';
 import manifest from '../manifest.config';
 import { makeToken, portAllowed } from '../src/background/panelTokens';
+import { isRestrictedUrl } from '../src/background/tabs';
 import { PANEL_PORT } from '../src/shared/messages';
 
 const ROOT = join(__dirname, '..');
@@ -46,12 +47,12 @@ describe('no HTML injection sinks, no eval / remote code', () => {
     }
   });
 
-  it('manifest: strict CSP, no side panel, only the popup page is web-accessible', () => {
+  it('manifest: strict CSP, sidebar on the toolbar icon, only the popup page is web-accessible', () => {
     const m = manifest as unknown as {
       content_security_policy: { extension_pages: string };
-      side_panel?: unknown;
+      side_panel?: { default_path: string };
       permissions: string[];
-      action: { default_popup: string };
+      action: { default_popup?: string };
       web_accessible_resources: Array<{ resources: string[]; matches: string[] }>;
       content_scripts: Array<{ js: string[]; all_frames?: boolean }>;
     };
@@ -59,9 +60,9 @@ describe('no HTML injection sinks, no eval / remote code', () => {
     expect(csp).toContain("script-src 'self'");
     expect(csp).toContain("object-src 'self'");
     expect(csp).not.toMatch(/unsafe-eval|unsafe-inline|https?:/);
-    expect(m.side_panel).toBeUndefined();
-    expect(m.permissions).not.toContain('sidePanel');
-    expect(m.action.default_popup).toBe('src/popup/index.html');
+    expect(m.side_panel?.default_path).toBe('src/popup/sidepanel.html');
+    expect(m.permissions).toContain('sidePanel');
+    expect(m.action.default_popup).toBeUndefined(); // a default_popup would stop the icon opening the sidebar
     expect(m.web_accessible_resources.flatMap((w) => w.resources)).toEqual(['src/popup/index.html']);
     expect(m.content_scripts.every((c) => c.all_frames === false)).toBe(true);
   });
@@ -139,5 +140,25 @@ describe('service worker killed mid-job', () => {
     expect(restoreJobState(s)?.status).toBe('ready');
     expect(restoreJobState(null)).toBeNull();
     expect(restoreJobState({ foo: 1 })).toBeNull();
+  });
+});
+
+describe('restricted pages (shortcut opens the sidebar instead)', () => {
+  it('knows where content scripts cannot run', () => {
+    expect(isRestrictedUrl('chrome://extensions/')).toBe(true);
+    expect(isRestrictedUrl('chrome-extension://abc/x.html')).toBe(true);
+    expect(isRestrictedUrl('https://chromewebstore.google.com/detail/x')).toBe(true);
+    expect(isRestrictedUrl(undefined)).toBe(true);
+    expect(isRestrictedUrl('https://docs.google.com/document/d/abc/edit')).toBe(false);
+    expect(isRestrictedUrl('https://en.wikipedia.org/wiki/X')).toBe(false);
+  });
+});
+
+describe('build entries', () => {
+  it('pages not referenced by the manifest are still built (popup inside pages, offscreen document)', async () => {
+    const cfg = (await import('../vite.config.ts')).default as { build?: { rollupOptions?: { input?: Record<string, string> } } };
+    const inputs = Object.values(cfg.build?.rollupOptions?.input ?? {});
+    expect(inputs).toContain('src/popup/index.html');
+    expect(inputs).toContain('src/offscreen/offscreen.html');
   });
 });

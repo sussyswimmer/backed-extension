@@ -16,6 +16,7 @@ import { stripMarkdown } from './extract/markdown';
 import { isVerbatimIn } from './match/verify';
 import { restoreJobState } from './session';
 import { TokenStore } from './panelTokens';
+import { isRestrictedUrl } from './tabs';
 
 const SESSION_KEY = 'jobState';
 const MENU_ID = 'backed-find-source';
@@ -29,9 +30,33 @@ const tokens = new TokenStore();
 
 /* ------------------------------ setup ------------------------------ */
 
+// Toolbar icon → the sidebar (side panel). Highlighting text or the shortcut → the in-page popup.
+void chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => undefined);
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({ id: MENU_ID, title: 'Find a source for this', contexts: ['selection'] }, () => void chrome.runtime.lastError);
+  void chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => undefined);
+  // Tabs that were already open (including Google Docs) get the "Find a source" button now,
+  // without needing a refresh.
+  void injectIntoOpenTabs();
 });
+
+const CONTENT_SCRIPT = chrome.runtime.getManifest().content_scripts?.[0]?.js?.[0];
+
+async function injectContentScript(tabId: number): Promise<boolean> {
+  if (!CONTENT_SCRIPT) return false;
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: [CONTENT_SCRIPT] });
+    return true;
+  } catch {
+    return false; // restricted page
+  }
+}
+
+async function injectIntoOpenTabs(): Promise<void> {
+  const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+  await Promise.all(tabs.map((t) => (t.id && !t.discarded ? injectContentScript(t.id) : Promise.resolve(false))));
+}
 
 // Restore the last job; a job that was mid-flight when the worker died is marked interrupted.
 const restoring = chrome.storage.session.get(SESSION_KEY).then((got) => {
@@ -326,13 +351,18 @@ async function openInPagePopup(tabId: number): Promise<boolean> {
   return !!res?.ok;
 }
 
-/** Pages where content scripts can't run: fall back to the toolbar popup. */
-async function openToolbarPopup(): Promise<void> {
-  try {
-    await chrome.action.openPopup();
-  } catch {
-    // Not available (no focused window) — the user can click the toolbar icon.
-  }
+function openSidePanel(windowId: number | undefined): void {
+  if (windowId === undefined) return;
+  void chrome.sidePanel?.open({ windowId }).catch(() => undefined);
+}
+
+/** Ask the tab's content script; if it isn't there (tab opened before install), inject it and retry. */
+async function askTab<T>(tabId: number, msg: ContentRequest): Promise<T | undefined> {
+  const first = await sendToTab<T>(tabId, msg);
+  if (first !== undefined) return first;
+  if (!(await injectContentScript(tabId))) return undefined;
+  await new Promise((r) => setTimeout(r, 150));
+  return sendToTab<T>(tabId, msg);
 }
 
 async function selectionViaScripting(tabId: number): Promise<string> {
@@ -353,13 +383,12 @@ chrome.runtime.onMessage.addListener((msg: unknown, sender, sendResponse: (r: Fi
 });
 
 // Keyboard shortcut (Alt+Shift+E by default; change it at chrome://extensions/shortcuts).
-async function onHotkey(tab: chrome.tabs.Tab | undefined): Promise<void> {
-  const active = tab?.id ? tab : (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
-  if (!active?.id) return openToolbarPopup();
-  const sel = await sendToTab<SelectionResponse>(active.id, { type: 'GET_SELECTION' });
+async function onHotkey(active: chrome.tabs.Tab): Promise<void> {
+  if (!active.id) return;
+  const sel = await askTab<SelectionResponse>(active.id, { type: 'GET_SELECTION' });
   if (!sel) {
+    // Couldn't reach the page at all: search what we can read and show results in the sidebar.
     const text = await selectionViaScripting(active.id);
-    await openToolbarPopup();
     if (text) await searchFor(text);
     return;
   }
@@ -368,7 +397,7 @@ async function onHotkey(tab: chrome.tabs.Tab | undefined): Promise<void> {
   if (!text && sel.isGoogleDocs) text = (await readClipboardViaOffscreen()).trim();
   if (text) {
     const search = searchFor(text);
-    if (!(await openInPagePopup(active.id))) await openToolbarPopup();
+    await openInPagePopup(active.id);
     await search;
     return;
   }
@@ -377,20 +406,31 @@ async function onHotkey(tab: chrome.tabs.Tab | undefined): Promise<void> {
     await sendToTab(active.id, { type: 'CLOSE_PANEL' });
     return;
   }
-  if (sel.isGoogleDocs) pendingHint = 'Copy the sentence first (Ctrl/Cmd+C), then press the shortcut again.';
-  if (!(await openInPagePopup(active.id))) await openToolbarPopup();
+  if (sel.isGoogleDocs) pendingHint = 'Highlight a sentence first (or copy it with Ctrl/Cmd+C), then press the shortcut again.';
+  await openInPagePopup(active.id);
 }
 
 chrome.commands.onCommand.addListener((command, tab) => {
-  if (command === COMMAND) void onHotkey(tab);
+  if (command !== COMMAND) return;
+  // Pages where no script can run (chrome://, the Web Store…): open the sidebar right away,
+  // while we still have the user gesture.
+  if (!tab || isRestrictedUrl(tab.url)) {
+    openSidePanel(tab?.windowId);
+    return;
+  }
+  void onHotkey(tab);
 });
 
 // Right-click → "Find a source for this".
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== MENU_ID) return;
+  if (!tab?.id || isRestrictedUrl(tab.url)) openSidePanel(tab?.windowId);
   void (async () => {
     const search = searchFor(info.selectionText ?? '');
-    if (!tab?.id || !(await openInPagePopup(tab.id))) await openToolbarPopup();
+    if (tab?.id && !isRestrictedUrl(tab.url)) {
+      const ok = await askTab<{ ok: boolean }>(tab.id, { type: 'OPEN_PANEL', token: tokens.issue() });
+      void ok;
+    }
     await search;
   })();
 });

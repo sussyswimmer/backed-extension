@@ -92,7 +92,7 @@ export type ContentRequest =
 
 export interface SelectionResponse {
   text: string;
-  method: 'selection' | 'input' | 'copy_event' | 'none';
+  method: 'selection' | 'input' | 'docs' | 'copy_event' | 'none';
   isGoogleDocs: boolean;
   panelOpen: boolean;
 }

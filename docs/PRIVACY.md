@@ -27,8 +27,8 @@ Backed never sends your browsing history, other tabs, page content, or Google Do
 
 ## Permissions
 
-- `storage`, `contextMenus`, `offscreen`: the extension itself.
-- `activeTab`, `scripting`: read the text you highlighted when you use the shortcut on pages where the content script isn't running.
+- `storage`, `sidePanel`, `contextMenus`, `offscreen`: the extension itself.
+- `activeTab`, `scripting`: read the text you highlighted when you use the shortcut on pages where the content script isn't running, and add the "Find a source" button to tabs that were already open when Backed was installed or updated.
 - `clipboardRead`, `clipboardWrite`: Google Docs fallback (Docs draws text on a canvas, so the highlighted sentence is read from a copy) and the "Copy as…" buttons.
 - Access to all sites, for two things:
   - the small **"Find a source" button** that appears when you highlight text. It runs on every page but sends nothing anywhere until you click it (or press the shortcut). It only reads its own on/off setting, never your keys.

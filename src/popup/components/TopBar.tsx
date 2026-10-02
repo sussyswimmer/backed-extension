@@ -1,5 +1,5 @@
 import { BrandMark, IconGear } from '../../shared/ui/Icons';
-import { closePopup } from '../embed';
+import { closePopup, isSidePanel } from '../embed';
 import { btn, openOptions } from './ui';
 
 export type PanelTab = 'search' | 'history';
@@ -30,11 +30,13 @@ export function TopBar({ tab, onTab, connected }: { tab: PanelTab; onTab: (t: Pa
       <button type="button" className={btn('ghost', 'icon')} onClick={openOptions} aria-label="Open options" title="Options">
         <IconGear className="h-[18px] w-[18px]" />
       </button>
+      {isSidePanel() ? null : (
       <button type="button" className={btn('ghost', 'icon')} onClick={closePopup} aria-label="Close" title="Close (Esc). A running search keeps going.">
         <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" />
         </svg>
       </button>
+      )}
     </header>
   );
 }

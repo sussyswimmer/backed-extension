@@ -1,5 +1,5 @@
-// The popup page runs in two places: Chrome's toolbar popup, and an iframe the content script
-// shows next to highlighted text on a web page (URL hash "#frame=<token>").
+// The popup UI runs in two places: the sidebar (toolbar icon, src/popup/sidepanel.html), and an
+// iframe the content script shows next to highlighted text on a web page (URL hash "#frame=<token>").
 import { FRAME_CLOSE } from '../shared/messages';
 
 export function frameToken(): string | undefined {
@@ -15,7 +15,11 @@ export function isFramed(): boolean {
   }
 }
 
-/** Close the popup: ask the page's content script to remove the iframe, or close the toolbar popup. */
+export function isSidePanel(): boolean {
+  return typeof location !== 'undefined' && location.pathname.endsWith('/sidepanel.html');
+}
+
+/** Close the popup: ask the page's content script to remove the iframe, or close the window. */
 export function closePopup(): void {
   if (isFramed()) window.parent.postMessage({ type: FRAME_CLOSE }, '*');
   else window.close();

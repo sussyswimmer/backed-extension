@@ -2,10 +2,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '../shared/ui/theme.css';
 import { App } from './App';
-import { isFramed } from './embed';
+import { isFramed, isSidePanel } from './embed';
 
-// Toolbar popup: Chrome sizes the window to the body (max 800×600). In-page card: fill the iframe.
-document.documentElement.classList.add(isFramed() ? 'bk-framed' : 'bk-toolbar');
+// In-page card: fill the iframe. Sidebar: fill the panel. Opened any other way: 400px wide.
+document.documentElement.classList.add(isFramed() ? 'bk-framed' : isSidePanel() ? 'bk-sidepanel' : 'bk-toolbar');
 
 const root = document.getElementById('root');
 if (root) {
