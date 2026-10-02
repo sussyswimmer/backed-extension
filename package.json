@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "tsx scripts/smoke.ts",
-    "version:bump": "node scripts/bump-version.mjs"
+    "version:bump": "node scripts/bump-version.mjs",
+    "smoke:llm": "tsx scripts/smoke-llm.ts"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",

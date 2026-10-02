@@ -113,6 +113,12 @@ function decodeHtml(bytes: Uint8Array, contentType: string): string {
 }
 
 const PAYWALL_HINT = /\b(subscribe to (?:read|continue)|subscription required|sign in to (?:read|continue)|create a free account to (?:read|continue)|enable javascript|you have reached your (?:free )?article limit)\b/i;
+/** Bot-protection / block pages (Cloudflare, Akamai, captchas) are not the article. */
+const BLOCK_HINT = /\b(you (?:have been|were) blocked|attention required|checking your browser|verify(?:ing)? you are (?:a )?human|are you a robot|access denied|request unsuccessful|incapsula incident|enable javascript and cookies to continue|ddos protection by|cloudflare ray id|performance (?:&|and) security by cloudflare)\b/i;
+
+export function looksBlocked(text: string): boolean {
+  return text.length < 4000 && BLOCK_HINT.test(text);
+}
 
 async function fromPdf(bytes: Uint8Array, finalUrl: string, c: Candidate, docId: string, ctx: TextContext): Promise<DocText | null> {
   const pdf = await raceAbort(
@@ -140,6 +146,7 @@ async function fromHtml(bytes: Uint8Array, contentType: string, finalUrl: string
   const html = decodeHtml(bytes, contentType);
   const extracted = await raceAbort(ctx.extractor.html(html, finalUrl), ctx.signal);
   const text = extracted.text;
+  if (looksBlocked(text) || (text.length < 1500 && looksBlocked(html.slice(0, 20000)))) return { fail: 'blocked' };
   if (text.length < MIN_FULL_TEXT_CHARS) return { fail: PAYWALL_HINT.test(html) ? 'paywall' : 'too short' };
   if (text.length < 1500 && PAYWALL_HINT.test(text)) return { fail: 'paywall' };
   return buildDoc({

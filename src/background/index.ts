@@ -2,7 +2,6 @@
 import type { BackgroundToPanel, ClaimOrigin, ContentRequest, DocsSelectionResponse, PanelToBackground } from '../shared/messages';
 import { PANEL_PORT } from '../shared/messages';
 import type { HistoryEntry, JobState, OutputMode, SourceResult } from '../shared/types';
-import { ACTIVE_STATUSES } from '../shared/types';
 import { loadSettings, rememberMode } from '../shared/settings';
 import { saveHistoryEntry } from '../shared/history';
 import { exportMarkdown } from '../shared/cite';
@@ -15,6 +14,7 @@ import { fetchDocument, MIN_FULL_TEXT_CHARS } from './extract/getText';
 import { cleanPdfPages } from './extract/pdfClean';
 import { stripMarkdown } from './extract/markdown';
 import { isVerbatimIn } from './match/verify';
+import { restoreJobState } from './session';
 
 const SESSION_KEY = 'jobState';
 const MENU_ID = 'backed-find-source';
@@ -34,14 +34,10 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Restore the last job; a job that was mid-flight when the worker died is marked interrupted.
 const restoring = chrome.storage.session.get(SESSION_KEY).then((got) => {
-  const s = got[SESSION_KEY] as JobState | undefined;
+  const saved = got[SESSION_KEY] as JobState | undefined;
+  const s = restoreJobState(saved);
   if (!s || job) return;
-  if (ACTIVE_STATUSES.includes(s.status)) {
-    s.status = 'interrupted';
-    s.refining = undefined;
-    s.progress = { stage: 'interrupted', message: 'Search interrupted. Press Retry to run it again.', percent: s.progress.percent };
-    void chrome.storage.session.set({ [SESSION_KEY]: s });
-  }
+  if (s.status !== saved?.status) void chrome.storage.session.set({ [SESSION_KEY]: s });
   restored = s;
 });
 

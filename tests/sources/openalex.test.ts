@@ -20,7 +20,7 @@ describe('rebuildAbstract', () => {
 });
 
 describe('OpenAlex adapter', () => {
-  it('builds the request: search, year + language filter, per-page, select, api_key and mailto', async () => {
+  it('builds the request: search, year + language filter, per-page, select, bearer key header and mailto', async () => {
     const { fetch, calls } = mockFetch(() => jsonResponse(works));
     const adapter = createOpenAlexAdapter({ openalexKey: 'oa-key-123', contactEmail: 'me@example.com', fetchImpl: fetch });
     const plan = makePlan({ constraints: { side: 'support', strength: 'any', yearFrom: 2010, yearTo: 2020, regions: ['Vietnam'] } });
@@ -32,7 +32,9 @@ describe('OpenAlex adapter', () => {
     expect(u.searchParams.get('search')).toBe('minimum wage employment effects Vietnam');
     expect(u.searchParams.get('filter')).toBe('from_publication_date:2010-01-01,to_publication_date:2020-12-31,language:en');
     expect(u.searchParams.get('per-page')).toBe('6');
-    expect(u.searchParams.get('api_key')).toBe('oa-key-123');
+    expect(u.searchParams.has('api_key')).toBe(false); // never in the URL
+    expect(calls[0]!.url).not.toContain('oa-key-123');
+    expect((calls[0]!.init?.headers as Record<string, string>).Authorization).toBe('Bearer oa-key-123');
     expect(u.searchParams.get('mailto')).toBe('me@example.com');
     expect(u.searchParams.get('select')).toContain('abstract_inverted_index');
     expect(new URL(calls[1]!.url).searchParams.get('search')).toBe('minimum wage disemployment low-wage jobs Vietnam');
@@ -44,6 +46,7 @@ describe('OpenAlex adapter', () => {
     await adapter.search(makePlan({ constraints: { side: 'support', strength: 'any', yearFrom: 2015 } }), { limit: 5, signal: signal() });
     const u = new URL(calls[0]!.url);
     expect(u.searchParams.has('api_key')).toBe(false);
+    expect((calls[0]!.init?.headers as Record<string, string>).Authorization).toBeUndefined();
     expect(u.searchParams.has('mailto')).toBe(false);
     expect(u.searchParams.get('filter')).toBe('from_publication_date:2015-01-01,language:en');
   });

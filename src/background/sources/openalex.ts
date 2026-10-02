@@ -1,4 +1,4 @@
-// OpenAlex works search. Free; optional api_key raises the daily budget; mailto joins the polite pool.
+// OpenAlex works search. Free; an optional API key (sent as a bearer token) raises the daily budget; mailto joins the polite pool.
 
 import type { AdapterSearchOptions, Candidate, Plan, SourceAdapter, SourceTier } from '../../shared/types';
 import { normalizeWs } from '../../shared/text';
@@ -75,6 +75,13 @@ export function rebuildAbstract(index: Record<string, number[]> | null | undefin
   return normalizeWs(words.filter((w) => typeof w === 'string').join(' '));
 }
 
+/** Keys never go in URLs (they end up in logs and history); OpenAlex accepts a bearer token. */
+export function openAlexHeaders(cfg: Pick<OpenAlexConfig, 'openalexKey'>): Record<string, string> {
+  const h: Record<string, string> = { Accept: 'application/json' };
+  if (cfg.openalexKey) h.Authorization = `Bearer ${cfg.openalexKey}`;
+  return h;
+}
+
 export function buildOpenAlexUrl(query: string, years: YearBounds, perPage: number, cfg: OpenAlexConfig): string {
   const params = new URLSearchParams();
   params.set('search', query);
@@ -85,7 +92,7 @@ export function buildOpenAlexUrl(query: string, years: YearBounds, perPage: numb
   params.set('filter', filters.join(','));
   params.set('per-page', String(Math.max(1, Math.min(50, Math.round(perPage)))));
   params.set('select', SELECT);
-  if (cfg.openalexKey) params.set('api_key', cfg.openalexKey);
+  // The API key goes in the Authorization header (see openAlexHeaders), never in the URL.
   if (cfg.contactEmail) params.set('mailto', cfg.contactEmail);
   return `${OPENALEX_BASE}?${params.toString()}`;
 }
@@ -185,7 +192,7 @@ export function createOpenAlexAdapter(cfg: OpenAlexConfig): SourceAdapter {
       const settled = await Promise.allSettled(
         queries.map(async (q) => {
           const url = buildOpenAlexUrl(q, years, opts.limit, cfg);
-          const json = await fetchJson<unknown>(url, { signal: opts.signal, fetchImpl: cfg.fetchImpl, headers: { Accept: 'application/json' } });
+          const json = await fetchJson<unknown>(url, { signal: opts.signal, fetchImpl: cfg.fetchImpl, headers: openAlexHeaders(cfg) });
           return parseOpenAlexResponse(json, counter);
         }),
       );

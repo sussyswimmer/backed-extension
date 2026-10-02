@@ -119,6 +119,8 @@ export class Job {
   private readonly llm: LlmClient;
   private runCtrl = new AbortController();
   private running = false;
+  /** The operation currently running (start or a refine round); never rejects. */
+  private current: Promise<void> | null = null;
   private candidates: Candidate[] = [];
   private readonly candidateById = new Map<string, Candidate>();
   private readonly attempted = new Set<string>();
@@ -196,6 +198,12 @@ export class Job {
   }
 
   async answerRefine(answers: RefineAnswer[]): Promise<void> {
+    // The refine card can appear while summaries are still being written: wait for that run.
+    if (this.running && this.current) {
+      this.state.refining = 'Refining…';
+      this.emit();
+      await this.current;
+    }
     if (this.running || !this.state.plan) return;
     const card = this.state.refine;
     const recorded = answers
@@ -213,6 +221,11 @@ export class Job {
 
   async searchAgain(freeText: string): Promise<void> {
     const text = freeText.trim();
+    if (this.running && this.current && text) {
+      this.state.refining = 'Refining…';
+      this.emit();
+      await this.current;
+    }
     if (this.running || !this.state.plan || !text) return;
     this.state.answers.push({ round: this.state.round, answers: [], freeText: text });
     await this.refineRound([], text);
@@ -399,18 +412,23 @@ export class Job {
       () => true,
     );
 
-    // Wave 1: whatever is ready at the deadline (Exa text and abstracts are instant).
-    await Promise.race([readDone, sleep(this.deps.waveDeadlineMs ?? 6000, signal).then(() => false)]);
+    // Wave 1 starts when everything is read, at the deadline, or as soon as a few docs are ready
+    // after a short grace period (Exa text and abstracts are instant; PDFs are slow).
+    let allRead = false;
+    void readDone.then(() => {
+      allRead = true;
+    });
+    const deadline = this.now() + (this.deps.waveDeadlineMs ?? 6000);
+    const graceEnd = this.now() + Math.min(1500, this.deps.waveDeadlineMs ?? 6000);
+    while (!allRead && this.now() < deadline && !(ready.length >= 3 && this.now() >= graceEnd)) {
+      await sleep(100, signal);
+    }
     if (signal.aborted) throw abortErr();
     const total = toRead.length;
     let budget = MAX_CHUNKS_PER_ROUND;
     const wave1 = ready.splice(0);
-    let readFinished = false;
-    void readDone.then(() => {
-      readFinished = true;
-    });
     if (wave1.length) {
-      const share = readFinished ? budget : Math.max(Math.min(wave1.length, budget), Math.round((budget * wave1.length) / total));
+      const share = allRead ? budget : Math.max(Math.min(wave1.length * 2, budget), Math.round((budget * wave1.length) / total));
       budget -= await this.matchWave(wave1, plan, round, share, signal);
     }
     await readAll; // rethrows abort
@@ -718,7 +736,13 @@ export class Job {
   }
 
   /** Run one operation with a fresh AbortController; map errors to state. */
-  private async guard(fn: (signal: AbortSignal) => Promise<void>): Promise<void> {
+  private guard(fn: (signal: AbortSignal) => Promise<void>): Promise<void> {
+    const run = this.runGuarded(fn);
+    this.current = run;
+    return run;
+  }
+
+  private async runGuarded(fn: (signal: AbortSignal) => Promise<void>): Promise<void> {
     this.runCtrl = new AbortController();
     const signal = this.runCtrl.signal;
     this.running = true;

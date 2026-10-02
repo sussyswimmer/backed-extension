@@ -142,6 +142,20 @@ describe('pipeline: refine rounds', () => {
     expect(job.state.round).toBe(2);
   });
 
+  it('an answer sent while the first round is still finishing is queued, not lost', async () => {
+    const world = makeWorld();
+    const job = new Job(CLAIM, 'essay', makeDeps(world));
+    const run = job.start();
+    // Answer as soon as the refine card shows up (summaries may still be running).
+    while (!job.state.refine) await new Promise((r) => setTimeout(r, 5));
+    world.round = 2;
+    const answered = job.answerRefine([{ questionId: 'region', answer: 'Vietnam' }]);
+    await run;
+    await answered;
+    expect(job.state.round).toBe(2);
+    expect(job.state.constraintChips).toContain('Vietnam');
+  });
+
   it('"Keep as is" changes nothing and just dismisses the card', async () => {
     const world = makeWorld();
     const job = new Job(CLAIM, 'essay', makeDeps(world));
