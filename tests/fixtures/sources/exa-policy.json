@@ -1,0 +1,44 @@
+{
+  "requestId": "7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d",
+  "results": [
+    {
+      "id": "https://www.imf.org/-/media/Files/Publications/WP/2023/English/wpiea2023061-print-pdf.pdf",
+      "title": "Capital Flow Management Measures and Macroeconomic Outcomes",
+      "url": "https://www.imf.org/-/media/Files/Publications/WP/2023/English/wpiea2023061-print-pdf.pdf",
+      "publishedDate": "2023-03-17T00:00:00.000Z",
+      "author": "IMF Research Department",
+      "score": 0.36,
+      "text": "IMF Working Paper. Capital Flow Management Measures and Macroeconomic Outcomes. Prepared by Staff of the Research Department. Abstract: This paper examines whether capital flow management measures (CFMs) introduced during periods of financial stress helped stabilize output and exchange rates. Using a panel of 50 emerging markets between 1995 and 2020, we find that well-targeted, temporary measures were associated with smaller output losses, while broad and persistent controls were not."
+    },
+    {
+      "id": "https://www.brookings.edu/articles/did-malaysias-capital-controls-work/",
+      "title": "Did Malaysia's capital controls work?",
+      "url": "https://www.brookings.edu/articles/did-malaysias-capital-controls-work/",
+      "publishedDate": "2019-09-04T00:00:00.000Z",
+      "author": "Ann Example",
+      "score": 0.34,
+      "text": "Malaysia's 1998 capital controls remain one of the most debated policy experiments of the Asian financial crisis. The controls allowed the government to cut interest rates without triggering capital flight, and the economy recovered faster than many expected, although it is hard to separate the effect of the controls from the global recovery."
+    },
+    {
+      "id": "https://www.sbv.gov.vn/webcenter/portal/en/home/sbv/news/monetary-policy-2025",
+      "title": "SBV to manage monetary policy flexibly",
+      "url": "https://www.sbv.gov.vn/webcenter/portal/en/home/sbv/news/monetary-policy-2025",
+      "publishedDate": "2025-01-08T00:00:00.000Z",
+      "author": null,
+      "score": 0.25,
+      "text": "The State Bank of Vietnam will continue to manage monetary policy flexibly to support growth while keeping inflation under control. The exchange rate will be managed in line with market conditions, and the central bank is prepared to intervene when necessary to stabilize the foreign exchange market."
+    },
+    {
+      "id": "https://www.gov.uk/national-minimum-wage-rates",
+      "title": "National Minimum Wage and National Living Wage rates",
+      "url": "https://www.gov.uk/national-minimum-wage-rates",
+      "publishedDate": null,
+      "author": null,
+      "score": 0.24,
+      "text": "National Minimum Wage and National Living Wage rates. The National Living Wage is the minimum pay per hour most workers aged 21 and over are entitled to by law. The rates change on 1 April every year. The Low Pay Commission's evidence suggests the increases have not had significant negative effects on employment."
+    }
+  ],
+  "costDollars": {
+    "total": 0.009
+  }
+}

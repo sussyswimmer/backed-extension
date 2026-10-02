@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+/*
+ * Backed UI theme: a quiet "reading room" look. Warm paper, ink text, a library-green accent,
+ * and a yellow highlighter for the sentences that match the claim. Light/dark follow the system.
+ * Semantic tokens live in CSS variables so every utility (bg-card, text-ink-2, …) adapts on its own.
+ */
+@theme inline {
+  --color-paper: var(--bk-paper);
+  --color-card: var(--bk-card);
+  --color-sunk: var(--bk-sunk);
+  --color-ink: var(--bk-ink);
+  --color-ink-2: var(--bk-ink-2);
+  --color-ink-3: var(--bk-ink-3);
+  --color-rule: var(--bk-rule);
+  --color-rule-strong: var(--bk-rule-strong);
+  --color-accent: var(--bk-accent);
+  --color-accent-ink: var(--bk-accent-ink);
+  --color-accent-soft: var(--bk-accent-soft);
+  --color-mark: var(--bk-mark);
+  --color-mark-ink: var(--bk-mark-ink);
+  --color-warn: var(--bk-warn);
+  --color-warn-ink: var(--bk-warn-ink);
+  --color-warn-rule: var(--bk-warn-rule);
+  --color-err: var(--bk-err);
+  --color-err-ink: var(--bk-err-ink);
+  --color-err-rule: var(--bk-err-rule);
+  --color-ok-ink: var(--bk-ok-ink);
+
+  --font-sans: ui-sans-serif, "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+  --font-serif: "Iowan Old Style", "Charter", "Bitstream Charter", "Sitka Text", "Source Serif Pro", Cambria, Georgia, ui-serif, serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+:root {
+  color-scheme: light dark;
+  --bk-paper: #f5f2ea;
+  --bk-card: #fffdf8;
+  --bk-sunk: #ece7dc;
+  --bk-ink: #1d1b17;
+  --bk-ink-2: #545049;
+  --bk-ink-3: #827c71;
+  --bk-rule: #e2dccf;
+  --bk-rule-strong: #cbc2b1;
+  --bk-accent: #1e5a46;
+  --bk-accent-ink: #ffffff;
+  --bk-accent-soft: #dcebe3;
+  --bk-mark: #fae189;
+  --bk-mark-ink: #1d1b17;
+  --bk-warn: #fbf0d6;
+  --bk-warn-ink: #73460a;
+  --bk-warn-rule: #ead096;
+  --bk-err: #fbe5e0;
+  --bk-err-ink: #8b2415;
+  --bk-err-rule: #eeb9ae;
+  --bk-ok-ink: #1d6b3f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bk-paper: #131210;
+    --bk-card: #1c1a17;
+    --bk-sunk: #24221e;
+    --bk-ink: #ece7dc;
+    --bk-ink-2: #b6afa2;
+    --bk-ink-3: #868074;
+    --bk-rule: #2f2c27;
+    --bk-rule-strong: #443f37;
+    --bk-accent: #74c7a3;
+    --bk-accent-ink: #0d1813;
+    --bk-accent-soft: #1d3129;
+    --bk-mark: #5a4810;
+    --bk-mark-ink: #fff4cf;
+    --bk-warn: #2a2213;
+    --bk-warn-ink: #efc773;
+    --bk-warn-rule: #4b3c1b;
+    --bk-err: #2e1714;
+    --bk-err-ink: #f4a797;
+    --bk-err-rule: #5c2b23;
+    --bk-ok-ink: #8fd6ad;
+  }
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--bk-paper);
+    color: var(--bk-ink);
+  }
+  body {
+    margin: 0;
+    min-width: 300px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--bk-accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--bk-mark);
+    color: var(--bk-mark-ink);
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* Highlighter stroke for matching sentences; clones across line breaks. */
+  .bk-mark {
+    background: linear-gradient(to bottom, transparent 6%, var(--bk-mark) 6%, var(--bk-mark) 94%, transparent 94%);
+    color: var(--bk-mark-ink);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding: 0 0.12em;
+    border-radius: 0.18em;
+  }
+
+  /* Small caps section label: "SUMMARY (AI)", "QUOTATION". */
+  .bk-label {
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    font-weight: 650;
+    letter-spacing: 0.085em;
+    text-transform: uppercase;
+    color: var(--bk-ink-3);
+  }
+
+  .bk-enter {
+    animation: bk-in 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .bk-spin {
+    animation: bk-spin 0.9s linear infinite;
+  }
+
+  .bk-pulse {
+    animation: bk-pulse 1.4s ease-in-out infinite;
+  }
+
+  .bk-bar {
+    transition: width 0.4s ease;
+  }
+}
+
+@keyframes bk-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes bk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bk-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bk-enter,
+  .bk-pulse {
+    animation: none;
+  }
+  .bk-spin {
+    animation-duration: 2.4s;
+  }
+  .bk-bar {
+    transition: none;
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "english": [
+    "We estimate the effect of minimum wages on low-wage jobs using 138 prominent state-level minimum wage changes between 1979 and 2016 in the United States. We find that the overall number of low-wage jobs remained essentially unchanged over the five years following the increase.",
+    "Malaysia's capital controls in 1998 allowed the government to lower interest rates without triggering capital flight. Critics argue that the recovery owed more to the global upturn than to the controls themselves, and the IMF later revised its view on capital flow management measures.",
+    "Vietnam will raise the regional minimum wage by 6% from July 1, the government announced on Friday. Nguyễn Văn Thành, a labor ministry official, said previous increases had not caused significant job losses.",
+    "## Key findings\n\n* The U.S. minimum wage has not kept pace with inflation since 2009.\n* [Read the full report](https://www.epi.org/publication/report.pdf) for state-level estimates.\n* Employment in food services grew 4.1% in states that raised wages.",
+    "Large language models trained on more data with fewer parameters can match the performance of much larger models when the compute budget is fixed. This suggests that many existing models are undertrained."
+  ],
+  "short_english": [
+    "Myopic Loss Aversion",
+    "Scaling Laws for Neural Language Models",
+    "Capital Controls, Exchange Rates, and Monetary Policy",
+    "Attention Is All You Need",
+    "U.S. Minimum Wage Trends",
+    "Deep Residual Learning for Image Recognition",
+    "Minimum Wages",
+    "Nguyễn and Trần on Vietnam's Economy"
+  ],
+  "non_english": {
+    "vi": [
+      "Theo báo cáo của Bộ Lao động, việc tăng lương tối thiểu vùng từ ngày 1/7 không làm giảm đáng kể số lượng việc làm trong các doanh nghiệp. Nhiều chuyên gia cho rằng mức tăng này là phù hợp với tình hình kinh tế.",
+      "Tác động của tiền lương tối thiểu đến việc làm"
+    ],
+    "es": [
+      "El Gobierno aprobó este martes una subida del salario mínimo interprofesional del 5%. Según el Ministerio de Trabajo, las subidas anteriores no han tenido un efecto negativo sobre el empleo, aunque algunos economistas advierten de que el impacto puede ser mayor en las regiones con salarios más bajos.",
+      "Efectos del salario mínimo sobre el empleo formal"
+    ],
+    "fr": [
+      "Nous étudions les lois d'échelle des modèles de langue et montrons que la perte diminue selon une loi de puissance avec la taille du modèle et la quantité de données utilisées pour l'entraînement.",
+      "Les effets du salaire minimum sur l'emploi des jeunes"
+    ],
+    "de": [
+      "Die Einführung des gesetzlichen Mindestlohns im Jahr 2015 hat nach den vorliegenden Studien nicht zu den befürchteten Arbeitsplatzverlusten geführt. Allerdings wurden in einigen Branchen die Arbeitszeiten reduziert, und die Zahl der Minijobs ist gesunken.",
+      "Die Auswirkungen des Mindestlohns auf die Beschäftigung"
+    ],
+    "zh": [
+      "最低工资上调对就业的影响一直是劳动经济学中争论最多的问题之一。近年来的研究表明，适度的最低工资上调对总体就业的负面影响很小。",
+      "最低工资与就业"
+    ],
+    "pt": [
+      "Os resultados mostram que os aumentos do salário mínimo não reduziram o emprego formal de maneira significativa, mas tiveram efeitos sobre a informalidade nas regiões mais pobres do país."
+    ]
+  }
+}

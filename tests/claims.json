@@ -1,0 +1,125 @@
+{
+  "$comment": "Golden claims (Brief 06 §1). `smoke: true` claims run in `npm run smoke`. `expect` notes describe what a good result looks like; they are reviewed by a human, not asserted automatically (except where the integration tests use the same scenario with fixtures).",
+  "claims": [
+    {
+      "id": "econ-minwage",
+      "type": "econ_causal",
+      "claim": "Raising the minimum wage doesn't significantly reduce employment.",
+      "mode": "paper",
+      "smoke": true,
+      "expect": "Peer-reviewed support (Card & Krueger 1994; Cengiz et al. 2019; Dube/Lester/Reich) labelled direct or paraphrase; Pushback with Neumark & Wascher or the Seattle study. Refine likely asks about region (mostly US) or recency."
+    },
+    {
+      "id": "finance-malaysia",
+      "type": "finance_history",
+      "claim": "Malaysia's 1998 capital controls helped it recover faster than IMF programs did in Thailand and Indonesia.",
+      "mode": "essay",
+      "smoke": true,
+      "expect": "Kaplan & Rodrik (2001) 'Did the Malaysian capital controls work?' (NBER → preprint or journal), IMF/World Bank retrospectives; some pushback arguing the recovery was regional. Partial matches where only Malaysia is discussed."
+    },
+    {
+      "id": "stat-vietnam-gdp",
+      "type": "statistical",
+      "claim": "Vietnam's GDP growth averaged over 6% in the 2010s.",
+      "mode": "essay",
+      "smoke": true,
+      "expect": "World Bank / IMF / ADB country reports (gov_igo) with growth figures 2010–2019; plan sets regions=[Vietnam], yearFrom 2010, yearTo 2019. Summaries must not invent numbers."
+    },
+    {
+      "id": "tech-llm-finbert",
+      "type": "tech_ai",
+      "claim": "Large language models perform worse than fine-tuned FinBERT on financial sentiment classification.",
+      "mode": "paper",
+      "smoke": false,
+      "expect": "arXiv runs (technical claim). Preprints/papers comparing ChatGPT/GPT-4/LLaMA to FinBERT on Financial PhraseBank; mixed results → some Pushback where LLMs match or beat FinBERT."
+    },
+    {
+      "id": "policy-deterrence",
+      "type": "policy_debate",
+      "claim": "Nuclear deterrence reduces the likelihood of great-power war.",
+      "mode": "debate",
+      "smoke": true,
+      "expect": "International relations literature (Waltz; 'nuclear peace' studies), think tanks (RAND, CSIS, Carnegie). Strong Pushback section (Sagan; stability-instability paradox). Debate tags drafted."
+    },
+    {
+      "id": "normative-testing",
+      "type": "normative",
+      "claim": "Standardized testing is unfair to low-income students.",
+      "mode": "essay",
+      "smoke": false,
+      "expect": "claimType normative → 'Values claim' tag; sources that make the argument (op-eds, think tanks like Brookings/Urban, education research on SAT and income). Paraphrase/partial labels common."
+    },
+    {
+      "id": "health-social-media",
+      "type": "health",
+      "claim": "Social media use is linked to higher depression rates in teenagers.",
+      "mode": "paper",
+      "smoke": false,
+      "expect": "Meta-analyses (Twenge; Orben & Przybylski as pushback for small effect sizes); mostly correlational → refine should not ask about causal unless the claim says 'causes'."
+    },
+    {
+      "id": "false-claim",
+      "type": "deliberately_false",
+      "claim": "Drinking two cups of coffee a day cures type 1 diabetes.",
+      "mode": "essay",
+      "smoke": true,
+      "expect": "Mostly Pushback or 'Nothing solid found'. No source may be labelled direct support. Any partial match must be about coffee and type 2 diabetes risk, with a scope mismatch."
+    },
+    {
+      "id": "vietnamese-input",
+      "type": "non_english",
+      "claim": "Tăng lương tối thiểu không làm giảm đáng kể việc làm ở Việt Nam.",
+      "mode": "essay",
+      "smoke": false,
+      "expect": "Plan translates to English ('Raising the minimum wage does not significantly reduce employment in Vietnam'), inputLanguage=Vietnamese, regions=[Vietnam]. UI shows 'Translated from Vietnamese'. Only English sources returned."
+    },
+    {
+      "id": "paragraph-two-claims",
+      "type": "multi_claim_paragraph",
+      "claim": "Remote work has become common since 2020. Studies show remote workers are more productive than office workers. However, remote work also makes it harder for junior employees to learn from colleagues.",
+      "mode": "essay",
+      "smoke": false,
+      "expect": "multipleClaims has 2+ items (productivity; junior learning). Searches the first substantive claim. First refine question is 'which claim?' with the claims as options."
+    },
+    {
+      "id": "ultra-niche",
+      "type": "ultra_niche",
+      "claim": "The 2014 rezoning of Tân Bình district's light-industrial parcels reduced small-workshop rents by more than a third.",
+      "mode": "paper",
+      "smoke": false,
+      "expect": "Degrades gracefully: few or no verified sources, honest 'Nothing solid found' with broaden chips, possibly partial matches about Ho Chi Minh City land use with scope mismatches. Never invents a source."
+    },
+    {
+      "id": "one-country",
+      "type": "single_region_results",
+      "claim": "Universal basic income pilots do not reduce how much people work.",
+      "mode": "essay",
+      "smoke": false,
+      "expect": "First results dominated by one country (US/Finland/Kenya depending on index). Refine should ask about region ('These are mostly Finnish/US pilots — want other countries?')."
+    },
+    {
+      "id": "correlational",
+      "type": "correlational_results",
+      "claim": "Owning a dog causes people to live longer.",
+      "mode": "paper",
+      "smoke": false,
+      "expect": "Results are cohort/observational studies (associational). Matcher flags 'correlational, claim is causal' scope mismatches; refine asks whether associational evidence is enough."
+    },
+    {
+      "id": "econ-tariffs",
+      "type": "econ_causal",
+      "claim": "The 2018 US tariffs on Chinese imports were paid mostly by American consumers and firms.",
+      "mode": "debate",
+      "smoke": false,
+      "expect": "Amiti, Redding & Weinstein (2019); Fajgelbaum et al. (2020) direct/paraphrase; Fed/NBER reports; news coverage (Reuters, NYT)."
+    },
+    {
+      "id": "stat-renewables",
+      "type": "statistical",
+      "claim": "Renewables generated more than 30% of the world's electricity in 2023.",
+      "mode": "essay",
+      "smoke": false,
+      "expect": "IEA / Ember / IRENA (gov_igo or think tank) with the 30% figure; yearFrom 2023. Numbers in summaries must appear in source text."
+    }
+  ]
+}

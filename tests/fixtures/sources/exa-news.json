@@ -1,0 +1,58 @@
+{
+  "requestId": "0c7e2a1f9b8d4c3e5a6b7d8e9f0a1b2c",
+  "results": [
+    {
+      "id": "https://www.reuters.com/world/us/states-raise-minimum-wages-2026-01-05/",
+      "title": "U.S. states raise minimum wages as research finds little job loss",
+      "url": "https://www.reuters.com/world/us/states-raise-minimum-wages-2026-01-05/",
+      "publishedDate": "2026-01-05T14:12:00.000Z",
+      "author": "Reuters Staff; Ann Saphir",
+      "score": 0.29,
+      "text": "WASHINGTON, Jan 5 (Reuters) - Twenty-two U.S. states raised their minimum wages on Monday, and early research on previous increases suggests the hikes have not led to the large job losses some business groups predicted. Economists at several regional Federal Reserve banks said employment in restaurants and retail continued to grow in states that raised wages faster than their neighbors."
+    },
+    {
+      "id": "https://e.vnexpress.net/news/business/economy/vietnam-to-raise-minimum-wage-by-6-4700000.html",
+      "title": "Vietnam to raise minimum wage by 6%",
+      "url": "https://e.vnexpress.net/news/business/economy/vietnam-to-raise-minimum-wage-by-6-4700000.html",
+      "publishedDate": "2024-05-10T00:00:00.000Z",
+      "author": "By Nguyen Quy",
+      "score": 0.27,
+      "text": "Vietnam will raise the regional minimum wage by 6% from July 1, the government announced on Friday. The increase applies to workers at companies in all four regions. Labor ministry officials said previous increases had not caused significant job losses and that most firms had absorbed the higher costs."
+    },
+    {
+      "id": "https://www.springfieldtimes-local.com/news/council-minimum-wage",
+      "title": "Council hears from business owners on minimum wage plan",
+      "url": "https://www.springfieldtimes-local.com/news/council-minimum-wage",
+      "publishedDate": "2025-09-18T00:00:00.000Z",
+      "author": "",
+      "score": 0.22,
+      "text": "City council members heard from small business owners on Tuesday who said the planned increase in the local minimum wage would force them to cut hours. Supporters of the measure pointed to studies showing that past increases did not reduce employment in the region."
+    },
+    {
+      "id": "https://elpais.com/economia/2024-02-06/el-gobierno-aprueba-la-subida-del-salario-minimo.html",
+      "title": "El Gobierno aprueba la subida del salario mínimo",
+      "url": "https://elpais.com/economia/2024-02-06/el-gobierno-aprueba-la-subida-del-salario-minimo.html",
+      "publishedDate": "2024-02-06T00:00:00.000Z",
+      "author": "Raquel Pascual",
+      "score": 0.21,
+      "text": "El Gobierno aprobó este martes una subida del salario mínimo interprofesional del 5%, hasta los 1.184 euros mensuales en 14 pagas. Según el Ministerio de Trabajo, las subidas anteriores no han tenido un efecto negativo sobre el empleo, aunque algunos economistas advierten de que el impacto puede ser mayor en las regiones con salarios más bajos."
+    },
+    {
+      "id": "https://www.nature.com/articles/d41586-024-00412-3",
+      "title": "Minimum-wage rises have not cost jobs, say economists",
+      "url": "https://www.nature.com/articles/d41586-024-00412-3",
+      "publishedDate": "2024-02-14T00:00:00.000Z",
+      "author": "Science News Desk",
+      "score": 0.2,
+      "text": "Minimum-wage rises have not cost jobs, say economists — but the debate isn't over. A new analysis of hundreds of studies suggests that the employment effects of moderate increases are close to zero, but researchers caution that very large rises could behave differently."
+    },
+    {
+      "id": "https://apnews.com/article/minimum-wage-teen-jobs-0123456789",
+      "title": "Teen employment and the minimum wage: what the numbers show",
+      "url": "https://apnews.com/article/minimum-wage-teen-jobs-0123456789",
+      "publishedDate": "2025-06-30T00:00:00.000Z",
+      "author": null,
+      "score": 0.19
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "requestId": "b5947044c4b78efa9552a7c89b306d95",
+  "results": [
+    {
+      "id": "https://www.brookings.edu/articles/what-does-the-research-say-about-minimum-wage-increases/",
+      "title": "What does the research say about minimum wage increases and employment?",
+      "url": "https://www.brookings.edu/articles/what-does-the-research-say-about-minimum-wage-increases/",
+      "publishedDate": "2023-03-14T00:00:00.000Z",
+      "author": "By Jane Smith, John Doe and Ann Lee",
+      "score": 0.4123,
+      "text": "# What does the research say about minimum wage increases and employment?\n\nEconomists have studied the employment effects of minimum wage increases for decades. The weight of recent evidence suggests that moderate increases have had little or no negative effect on overall employment, while raising earnings for low-wage workers.\n\n## The border-discontinuity studies\n\nStudies comparing counties on either side of a state border found strong earnings effects and no detectable employment effects. Other researchers argue that these comparisons may mask job losses among the least experienced workers, and the debate over larger increases remains open.\n\nOur review of more than 100 studies finds that the median estimate of the employment elasticity is close to zero.",
+      "image": "https://www.brookings.edu/wp-content/uploads/2023/03/mw.jpg",
+      "favicon": "https://www.brookings.edu/favicon.ico"
+    },
+    {
+      "id": "https://en.wikipedia.org/wiki/Minimum_wage",
+      "title": "Minimum wage - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Minimum_wage",
+      "publishedDate": null,
+      "author": null,
+      "score": 0.3855,
+      "text": "Minimum wage\n\nA minimum wage is the lowest remuneration that employers can legally pay their employees. Most countries had introduced minimum wage legislation by the end of the 20th century. Supply and demand models suggest that there may be employment losses from minimum wages, while other economists argue that in imperfectly competitive labour markets a minimum wage can increase employment. The effects of the minimum wage on employment are among the most studied questions in labor economics."
+    },
+    {
+      "id": "https://www.econ-explainers.com/minimum-wage-debate",
+      "title": "The minimum wage debate, explained",
+      "url": "https://www.econ-explainers.com/minimum-wage-debate/?utm_source=exa&utm_medium=search",
+      "publishedDate": "2021-07-01T00:00:00.000Z",
+      "author": "Sam Writer",
+      "score": 0.3311
+    },
+    {
+      "id": "https://vnexpress.net/tac-dong-cua-tang-luong-toi-thieu-4567890.html",
+      "title": "Tác động của việc tăng lương tối thiểu đến việc làm",
+      "url": "https://vnexpress.net/tac-dong-cua-tang-luong-toi-thieu-4567890.html",
+      "publishedDate": "2024-07-02T00:00:00.000Z",
+      "author": "Hoài Thu",
+      "score": 0.3102,
+      "text": "Tác động của việc tăng lương tối thiểu đến việc làm\n\nTheo báo cáo của Bộ Lao động, việc tăng lương tối thiểu vùng từ ngày 1/7 không làm giảm đáng kể số lượng việc làm trong các doanh nghiệp. Nhiều chuyên gia cho rằng mức tăng này là phù hợp với tình hình kinh tế và giúp người lao động cải thiện thu nhập. Tuy nhiên, một số doanh nghiệp nhỏ cho biết chi phí lao động tăng khiến họ phải cân nhắc việc tuyển dụng thêm."
+    },
+    {
+      "id": "https://www.reddit.com/r/AskEconomics/comments/abc123/minimum_wage_job_losses/",
+      "title": "Do minimum wage hikes cause big job losses?",
+      "url": "https://www.reddit.com/r/AskEconomics/comments/abc123/minimum_wage_job_losses/",
+      "publishedDate": "2022-02-11T00:00:00.000Z",
+      "author": null,
+      "score": 0.2047,
+      "text": "Is it true that minimum wage hikes cause big job losses? My econ professor said the evidence is mixed but my uncle says every increase kills jobs. What does the research actually say? Edit: thanks for all the links, the Card and Krueger study was interesting."
+    }
+  ],
+  "searchTime": 812.4,
+  "costDollars": {
+    "total": 0.009,
+    "search": {
+      "neural": 0.005
+    },
+    "contents": {
+      "text": 0.004
+    }
+  }
+}

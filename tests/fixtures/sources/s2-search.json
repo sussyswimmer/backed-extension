@@ -1,0 +1,147 @@
+{
+  "total": 4213,
+  "offset": 0,
+  "next": 5,
+  "data": [
+    {
+      "paperId": "5b1f2c4e0d9a7e1b3c5d7f9a1b3c5d7e9f1a3b5c",
+      "externalIds": {
+        "MAG": "2952349331",
+        "DOI": "10.1093/QJE/QJZ014",
+        "CorpusId": 159041812
+      },
+      "url": "https://www.semanticscholar.org/paper/5b1f2c4e0d9a7e1b3c5d7f9a1b3c5d7e9f1a3b5c",
+      "title": "The Effect of Minimum Wages on Low-Wage Jobs",
+      "abstract": "We estimate the effect of minimum wages on low-wage jobs using 138 prominent state-level minimum wage changes between 1979 and 2016 in the United States using a difference-in-differences approach. We first estimate the effect of the minimum wage increase on employment changes by wage bins throughout the wage distribution. We then focus on the bunching of jobs at the minimum wage. We find that the overall number of low-wage jobs remained essentially unchanged over the five years following the increase.",
+      "venue": "Quarterly Journal of Economics",
+      "year": 2019,
+      "citationCount": 798,
+      "openAccessPdf": {
+        "url": "",
+        "status": "CLOSED",
+        "license": null,
+        "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1093/qje/qjz014?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1093/qje/qjz014, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+      },
+      "publicationTypes": [
+        "JournalArticle"
+      ],
+      "publicationDate": "2019-05-06",
+      "journal": {
+        "name": "The Quarterly Journal of Economics",
+        "pages": "1405 - 1454",
+        "volume": "134"
+      },
+      "authors": [
+        {
+          "authorId": "102811111",
+          "name": "Doruk Cengiz"
+        },
+        {
+          "authorId": "102822222",
+          "name": "Arindrajit Dube"
+        },
+        {
+          "authorId": "102833333",
+          "name": "Attila S. Lindner"
+        },
+        {
+          "authorId": "102844444",
+          "name": "Ben Zipperer"
+        }
+      ]
+    },
+    {
+      "paperId": "9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b",
+      "externalIds": {
+        "ArXiv": "2107.06469",
+        "DBLP": "journals/corr/abs-2107-06469",
+        "CorpusId": 235899999
+      },
+      "url": "https://www.semanticscholar.org/paper/9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b",
+      "title": "Machine Learning Estimates of Minimum Wage Employment Effects",
+      "abstract": "We use gradient boosted trees to predict which workers are affected by minimum wage increases and estimate employment effects for the predicted group. The estimated employment effects are small and statistically insignificant.",
+      "venue": "arXiv.org",
+      "year": 2021,
+      "citationCount": 7,
+      "openAccessPdf": {
+        "url": "https://arxiv.org/pdf/2107.06469",
+        "status": "GREEN",
+        "license": null,
+        "disclaimer": "Notice: ..."
+      },
+      "publicationTypes": [
+        "JournalArticle"
+      ],
+      "publicationDate": "2021-07-14",
+      "journal": {
+        "name": "ArXiv",
+        "volume": "abs/2107.06469"
+      },
+      "authors": [
+        {
+          "authorId": "2111111111",
+          "name": "Jane Q. Researcher"
+        },
+        {
+          "authorId": "2122222222",
+          "name": "Raj Patel"
+        }
+      ]
+    },
+    {
+      "paperId": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+      "externalIds": {
+        "DOI": "10.1234/ejemplo.2015.07",
+        "CorpusId": 211111111
+      },
+      "url": "https://www.semanticscholar.org/paper/1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+      "title": "Efectos del salario mínimo sobre el empleo formal en México",
+      "abstract": "Este artículo analiza los efectos del salario mínimo sobre el empleo formal en México entre 2010 y 2019. Los resultados muestran que los aumentos del salario mínimo no redujeron el empleo de manera significativa.",
+      "venue": "Revista de Economía",
+      "year": 2015,
+      "citationCount": 3,
+      "openAccessPdf": null,
+      "publicationTypes": [
+        "JournalArticle"
+      ],
+      "publicationDate": "2015-07-01",
+      "journal": {
+        "name": "Revista de Economía"
+      },
+      "authors": [
+        {
+          "authorId": "2133333333",
+          "name": "María González"
+        }
+      ]
+    },
+    {
+      "paperId": "0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e",
+      "externalIds": {
+        "CorpusId": 154000000
+      },
+      "url": "https://www.semanticscholar.org/paper/0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e",
+      "title": "Minimum Wages",
+      "abstract": null,
+      "venue": "",
+      "year": 2008,
+      "citationCount": 1203,
+      "openAccessPdf": null,
+      "publicationTypes": [
+        "Book"
+      ],
+      "publicationDate": null,
+      "journal": null,
+      "authors": [
+        {
+          "authorId": "1111",
+          "name": "David Neumark"
+        },
+        {
+          "authorId": "2222",
+          "name": "William L. Wascher"
+        }
+      ]
+    }
+  ]
+}

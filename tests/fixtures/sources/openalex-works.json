@@ -1,0 +1,777 @@
+{
+  "meta": {
+    "count": 18432,
+    "db_response_time_ms": 61,
+    "page": 1,
+    "per_page": 5,
+    "groups_count": null,
+    "cost_usd": 0.001
+  },
+  "results": [
+    {
+      "id": "https://openalex.org/W2952349331",
+      "doi": "https://doi.org/10.1093/qje/qjz014",
+      "display_name": "The Effect of Minimum Wages on Low-Wage Jobs",
+      "publication_date": "2019-05-06",
+      "publication_year": 2019,
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 812,
+      "authorships": [
+        {
+          "author_position": "first",
+          "author": {
+            "id": "https://openalex.org/A5011111111",
+            "display_name": "Doruk Cengiz",
+            "orcid": null
+          },
+          "institutions": [],
+          "raw_author_name": "Doruk Cengiz"
+        },
+        {
+          "author_position": "middle",
+          "author": {
+            "id": "https://openalex.org/A5022222222",
+            "display_name": "Arindrajit Dube",
+            "orcid": "https://orcid.org/0000-0002-1825-0097"
+          },
+          "institutions": [],
+          "raw_author_name": "Arindrajit Dube"
+        },
+        {
+          "author_position": "middle",
+          "author": {
+            "id": "https://openalex.org/A5033333333",
+            "display_name": "Attila Lindner",
+            "orcid": null
+          },
+          "institutions": [],
+          "raw_author_name": "Attila Lindner"
+        },
+        {
+          "author_position": "last",
+          "author": {
+            "id": "https://openalex.org/A5044444444",
+            "display_name": "Ben Zipperer",
+            "orcid": null
+          },
+          "institutions": [],
+          "raw_author_name": "Ben Zipperer"
+        }
+      ],
+      "primary_location": {
+        "is_oa": false,
+        "landing_page_url": "https://doi.org/10.1093/qje/qjz014",
+        "pdf_url": null,
+        "source": {
+          "id": "https://openalex.org/S203860005",
+          "display_name": "The Quarterly Journal of Economics",
+          "issn_l": "0033-5533",
+          "type": "journal",
+          "host_organization_name": "Oxford University Press"
+        },
+        "license": null,
+        "version": "publishedVersion"
+      },
+      "best_oa_location": {
+        "is_oa": true,
+        "landing_page_url": "http://www.nber.org/papers/w25434",
+        "pdf_url": "http://www.nber.org/papers/w25434.pdf",
+        "source": {
+          "id": "https://openalex.org/S4306401271",
+          "display_name": "National Bureau of Economic Research",
+          "issn_l": null,
+          "type": "repository",
+          "host_organization_name": null
+        },
+        "license": null,
+        "version": "submittedVersion"
+      },
+      "abstract_inverted_index": {
+        "We": [
+          0,
+          29,
+          49,
+          61
+        ],
+        "estimate": [
+          1,
+          31
+        ],
+        "the": [
+          2,
+          22,
+          32,
+          35,
+          46,
+          53,
+          58,
+          64,
+          74,
+          78
+        ],
+        "effect": [
+          3,
+          33
+        ],
+        "of": [
+          4,
+          34,
+          55,
+          67
+        ],
+        "minimum": [
+          5,
+          14,
+          36,
+          59
+        ],
+        "wages": [
+          6
+        ],
+        "on": [
+          7,
+          39,
+          52
+        ],
+        "low-wage": [
+          8,
+          68
+        ],
+        "jobs": [
+          9,
+          56,
+          69
+        ],
+        "using": [
+          10,
+          25
+        ],
+        "138": [
+          11
+        ],
+        "prominent": [
+          12
+        ],
+        "state-level": [
+          13
+        ],
+        "wage": [
+          15,
+          37,
+          43,
+          47
+        ],
+        "changes": [
+          16,
+          41
+        ],
+        "between": [
+          17
+        ],
+        "1979": [
+          18
+        ],
+        "and": [
+          19
+        ],
+        "2016": [
+          20
+        ],
+        "in": [
+          21
+        ],
+        "United": [
+          23
+        ],
+        "States": [
+          24
+        ],
+        "a": [
+          26
+        ],
+        "difference-in-differences": [
+          27
+        ],
+        "approach.": [
+          28
+        ],
+        "first": [
+          30
+        ],
+        "increase": [
+          38
+        ],
+        "employment": [
+          40
+        ],
+        "by": [
+          42
+        ],
+        "bins": [
+          44
+        ],
+        "throughout": [
+          45
+        ],
+        "distribution.": [
+          48
+        ],
+        "then": [
+          50
+        ],
+        "focus": [
+          51
+        ],
+        "bunching": [
+          54
+        ],
+        "at": [
+          57
+        ],
+        "wage.": [
+          60
+        ],
+        "find": [
+          62
+        ],
+        "that": [
+          63
+        ],
+        "overall": [
+          65
+        ],
+        "number": [
+          66
+        ],
+        "remained": [
+          70
+        ],
+        "essentially": [
+          71
+        ],
+        "unchanged": [
+          72
+        ],
+        "over": [
+          73
+        ],
+        "five": [
+          75
+        ],
+        "years": [
+          76
+        ],
+        "following": [
+          77
+        ],
+        "increase.": [
+          79
+        ]
+      }
+    },
+    {
+      "id": "https://openalex.org/W2124512335",
+      "doi": "https://doi.org/10.1162/REST_a_00039",
+      "display_name": "Minimum Wage Effects Across State Borders: Estimates Using Contiguous Counties",
+      "publication_date": "2010-11-01",
+      "publication_year": 2010,
+      "language": "en",
+      "type": "article",
+      "cited_by_count": 1543,
+      "authorships": [
+        {
+          "author_position": "first",
+          "author": {
+            "id": "https://openalex.org/A5022222222",
+            "display_name": "Arindrajit Dube",
+            "orcid": null
+          },
+          "institutions": [],
+          "raw_author_name": "Arindrajit Dube"
+        },
+        {
+          "author_position": "middle",
+          "author": {
+            "id": "https://openalex.org/A5055555555",
+            "display_name": "T. William Lester",
+            "orcid": null
+          },
+          "institutions": [],
+          "raw_author_name": "T. William Lester"
+        },
+        {
+          "author_position": "last",
+          "author": {
+            "id": "https://openalex.org/A5066666666",
+            "display_name": "Michael Reich",
+            "orcid": null
+          },
+          "institutions": [],
+          "raw_author_name": "Michael Reich"
+        }
+      ],
+      "primary_location": {
+        "is_oa": false,
+        "landing_page_url": "https://direct.mit.edu/rest/article/92/4/945/57876/Minimum-Wage-Effects-Across-State-Borders",
+        "pdf_url": null,
+        "source": {
+          "id": "https://openalex.org/S133470281",
+          "display_name": "The Review of Economics and Statistics",
+          "issn_l": "0034-6535",
+          "type": "journal",
+          "host_organization_name": "MIT Press"
+        },
+        "license": null,
+        "version": "publishedVersion"
+      },
+      "best_oa_location": null,
+      "abstract_inverted_index": {
+        "We": [
+          0,
+          44
+        ],
+        "use": [
+          1
+        ],
+        "policy": [
+          2
+        ],
+        "discontinuities": [
+          3
+        ],
+        "at": [
+          4
+        ],
+        "state": [
+          5,
+          56
+        ],
+        "borders": [
+          6
+        ],
+        "to": [
+          7
+        ],
+        "identify": [
+          8
+        ],
+        "the": [
+          9,
+          27,
+          50
+        ],
+        "effects": [
+          10,
+          62,
+          66
+        ],
+        "of": [
+          11,
+          67
+        ],
+        "minimum": [
+          12,
+          37,
+          68
+        ],
+        "wages": [
+          13
+        ],
+        "on": [
+          14
+        ],
+        "earnings": [
+          15,
+          61
+        ],
+        "and": [
+          16,
+          20,
+          42,
+          58,
+          63
+        ],
+        "employment": [
+          17,
+          65
+        ],
+        "in": [
+          18,
+          36,
+          49
+        ],
+        "restaurants": [
+          19
+        ],
+        "other": [
+          21
+        ],
+        "low-wage": [
+          22
+        ],
+        "sectors.": [
+          23
+        ],
+        "Our": [
+          24
+        ],
+        "approach": [
+          25
+        ],
+        "generalizes": [
+          26
+        ],
+        "case": [
+          28
+        ],
+        "study": [
+          29
+        ],
+        "method": [
+          30
+        ],
+        "by": [
+          31
+        ],
+        "considering": [
+          32
+        ],
+        "all": [
+          33,
+          46
+        ],
+        "local": [
+          34
+        ],
+        "differences": [
+          35
+        ],
+        "wage": [
+          38,
+          69
+        ],
+        "policies": [
+          39
+        ],
+        "between": [
+          40
+        ],
+        "1990": [
+          41
+        ],
+        "2006.": [
+          43
+        ],
+        "compare": [
+          45
+        ],
+        "contiguous": [
+          47
+        ],
+        "county-pairs": [
+          48
+        ],
+        "United": [
+          51
+        ],
+        "States": [
+          52
+        ],
+        "that": [
+          53
+        ],
+        "straddle": [
+          54
+        ],
+        "a": [
+          55
+        ],
+        "border": [
+          57
+        ],
+        "find": [
+          59
+        ],
+        "strong": [
+          60
+        ],
+        "no": [
+          64
+        ],
+        "increases.": [
+          70
+        ]
+      }
+    },
+    {
+      "id": "https://openalex.org/W1594466121",
+      "doi": "https://doi.org/10.3386/w12663",
+      "display_name": "Minimum Wages and Employment: A Review of Evidence from the New Minimum Wage Research",
+      "publication_date": "2006-11-01",
+      "publication_year": 2006,
+      "language": "en",
+      "type": "preprint",
+      "cited_by_count": 640,
+      "authorships": [
+        {
+          "author_position": "first",
+          "author": {
+            "id": "https://openalex.org/A5077777777",
+            "display_name": "David Neumark",
+            "orcid": null
+          },
+          "institutions": [],
+          "raw_author_name": "David Neumark"
+        },
+        {
+          "author_position": "last",
+          "author": null,
+          "institutions": [],
+          "raw_author_name": "William Wascher"
+        }
+      ],
+      "primary_location": {
+        "is_oa": true,
+        "landing_page_url": "https://www.nber.org/papers/w12663",
+        "pdf_url": "https://www.nber.org/system/files/working_papers/w12663/w12663.pdf",
+        "source": {
+          "id": "https://openalex.org/S4306401271",
+          "display_name": "National Bureau of Economic Research",
+          "issn_l": null,
+          "type": "repository",
+          "host_organization_name": null
+        },
+        "license": null,
+        "version": "submittedVersion"
+      },
+      "best_oa_location": {
+        "is_oa": true,
+        "landing_page_url": "https://www.nber.org/papers/w12663",
+        "pdf_url": "https://www.nber.org/system/files/working_papers/w12663/w12663.pdf",
+        "source": {
+          "id": "https://openalex.org/S4306401271",
+          "display_name": "National Bureau of Economic Research",
+          "issn_l": null,
+          "type": "repository",
+          "host_organization_name": null
+        },
+        "license": null,
+        "version": "submittedVersion"
+      },
+      "abstract_inverted_index": {
+        "We": [
+          0
+        ],
+        "review": [
+          1,
+          36
+        ],
+        "the": [
+          2,
+          6,
+          14,
+          25,
+          32,
+          54,
+          64
+        ],
+        "burgeoning": [
+          3
+        ],
+        "literature": [
+          4
+        ],
+        "on": [
+          5,
+          57
+        ],
+        "employment": [
+          7,
+          59
+        ],
+        "effects": [
+          8,
+          56
+        ],
+        "of": [
+          9,
+          44,
+          51,
+          60
+        ],
+        "minimum": [
+          10,
+          27,
+          65
+        ],
+        "wages": [
+          11
+        ],
+        "-": [
+          12,
+          20
+        ],
+        "in": [
+          13,
+          31,
+          63
+        ],
+        "United": [
+          15
+        ],
+        "States": [
+          16
+        ],
+        "and": [
+          17
+        ],
+        "other": [
+          18
+        ],
+        "countries": [
+          19
+        ],
+        "that": [
+          21,
+          38
+        ],
+        "was": [
+          22
+        ],
+        "spurred": [
+          23
+        ],
+        "by": [
+          24
+        ],
+        "new": [
+          26
+        ],
+        "wage": [
+          28
+        ],
+        "research": [
+          29
+        ],
+        "beginning": [
+          30
+        ],
+        "early": [
+          33
+        ],
+        "1990s.": [
+          34
+        ],
+        "Our": [
+          35
+        ],
+        "indicates": [
+          37
+        ],
+        "there": [
+          39
+        ],
+        "is": [
+          40
+        ],
+        "a": [
+          41,
+          49
+        ],
+        "wide": [
+          42
+        ],
+        "range": [
+          43
+        ],
+        "existing": [
+          45
+        ],
+        "estimates": [
+          46
+        ],
+        "and,": [
+          47
+        ],
+        "accordingly,": [
+          48
+        ],
+        "lack": [
+          50
+        ],
+        "consensus": [
+          52
+        ],
+        "about": [
+          53
+        ],
+        "overall": [
+          55
+        ],
+        "low-wage": [
+          58
+        ],
+        "an": [
+          61
+        ],
+        "increase": [
+          62
+        ],
+        "wage.": [
+          66
+        ]
+      }
+    },
+    {
+      "id": "https://openalex.org/W3000000001",
+      "doi": null,
+      "display_name": "The Minimum Wage and Labor Market Outcomes",
+      "publication_date": null,
+      "publication_year": 2008,
+      "language": "en",
+      "type": "book-chapter",
+      "cited_by_count": 12,
+      "authorships": [],
+      "primary_location": {
+        "is_oa": false,
+        "landing_page_url": "https://mitpress.mit.edu/9780262141027/minimum-wages/",
+        "pdf_url": null,
+        "source": {
+          "id": "https://openalex.org/S4306463937",
+          "display_name": "The MIT Press eBooks",
+          "issn_l": null,
+          "type": "ebook platform",
+          "host_organization_name": "MIT Press"
+        },
+        "license": null,
+        "version": "publishedVersion"
+      },
+      "best_oa_location": null,
+      "abstract_inverted_index": null
+    },
+    {
+      "id": "https://openalex.org/W3000000002",
+      "doi": "https://doi.org/10.1234/ejemplo.2015.07",
+      "display_name": "Efectos del salario mínimo sobre el empleo formal",
+      "publication_date": "2015-07-01",
+      "publication_year": 2015,
+      "language": "es",
+      "type": "article",
+      "cited_by_count": 3,
+      "authorships": [],
+      "primary_location": {
+        "is_oa": false,
+        "landing_page_url": "https://revista.example.mx/articulo/77",
+        "pdf_url": null,
+        "source": {
+          "display_name": "Revista de Economía",
+          "type": "journal"
+        }
+      },
+      "best_oa_location": null,
+      "abstract_inverted_index": null
+    }
+  ],
+  "group_by": []
+}

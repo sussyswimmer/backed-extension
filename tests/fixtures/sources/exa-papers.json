@@ -1,0 +1,67 @@
+{
+  "requestId": "1f2e3d4c5b6a79880706a5b4c3d2e1f0",
+  "results": [
+    {
+      "id": "https://academic.oup.com/qje/article/134/3/1405/5484905",
+      "title": "The Effect of Minimum Wages on Low-Wage Jobs",
+      "url": "https://academic.oup.com/qje/article/134/3/1405/5484905",
+      "publishedDate": "2019-05-06T00:00:00.000Z",
+      "author": "Doruk Cengiz, Arindrajit Dube, Attila Lindner, Ben Zipperer",
+      "score": 0.45,
+      "text": "The Quarterly Journal of Economics, Volume 134, Issue 3, August 2019, Pages 1405–1454, https://doi.org/10.1093/qje/qjz014\n\nThe Effect of Minimum Wages on Low-Wage Jobs\n\nAbstract. We estimate the effect of minimum wages on low-wage jobs using 138 prominent state-level minimum wage changes between 1979 and 2016 in the United States. We find that the overall number of low-wage jobs remained essentially unchanged over the five years following the increase."
+    },
+    {
+      "id": "https://www.econstor.eu/bitstream/10419/123456/1/dp9876.pdf",
+      "title": "Minimum wages and employment in emerging economies",
+      "url": "https://www.econstor.eu/bitstream/10419/123456/1/dp9876.pdf",
+      "publishedDate": "2020-01-01T00:00:00.000Z",
+      "author": null,
+      "score": 0.39,
+      "text": "Discussion Paper Series. Minimum wages and employment in emerging economies: new evidence from administrative data. Abstract: We study minimum wage increases in five emerging economies and find small negative employment effects concentrated among young workers in the informal sector."
+    },
+    {
+      "id": "https://scholar.example-university.edu/jsmith/publications/minimum-wages-firm-employment",
+      "title": "Minimum wages and firm employment",
+      "url": "https://scholar.example-university.edu/jsmith/publications/minimum-wages-firm-employment",
+      "publishedDate": "2017-02-01T00:00:00.000Z",
+      "author": "J. Smith; A. Doe",
+      "score": 0.37,
+      "text": "Working paper version. Published as: Smith, J. and Doe, A. (2017) \"Minimum wages and firm employment\", Journal of Public Economics, doi:10.1016/j.jpubeco.2017.01.002. Abstract: Using firm-level data we find that the employment effect of minimum wage increases is small, but that firms adjust hours and prices."
+    },
+    {
+      "id": "https://faculty.example-university.edu/~adoe/mw-synthetic-control-draft.pdf",
+      "title": "Minimum Wages and Employment: Synthetic Control Evidence",
+      "url": "https://faculty.example-university.edu/~adoe/mw-synthetic-control-draft.pdf",
+      "publishedDate": "2022-11-01T00:00:00.000Z",
+      "author": "A. Doe",
+      "score": 0.33,
+      "text": "Draft - please do not cite. We revisit the employment effects of minimum wages using a synthetic control approach for 30 US states. Our preliminary estimates suggest that job losses were small relative to the earnings gains for affected workers."
+    },
+    {
+      "id": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3456789",
+      "title": "Minimum Wages and Employment: A Review of Recent Evidence",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3456789",
+      "publishedDate": "2021-03-01T00:00:00.000Z",
+      "author": "Raj Patel",
+      "score": 0.31,
+      "text": "Abstract: This paper reviews the literature on minimum wages and employment, focusing on studies published since 2010. We find that most credible estimates of employment elasticities are small and statistically indistinguishable from zero."
+    },
+    {
+      "id": "https://doi.org/10.1257/jep.99.1.001",
+      "title": "The Minimum Wage at 90: Lessons from the Research",
+      "url": "https://doi.org/10.1257/jep.99.1.001",
+      "publishedDate": "2028-01-01T00:00:00.000Z",
+      "author": null,
+      "score": 0.3
+    }
+  ],
+  "costDollars": {
+    "total": 0.011,
+    "search": {
+      "neural": 0.006
+    },
+    "contents": {
+      "text": 0.005
+    }
+  }
+}
