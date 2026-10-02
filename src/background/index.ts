@@ -1,6 +1,6 @@
-// Service worker: message router, context menu, hotkey, job lifecycle, persistence.
-import type { BackgroundToPanel, ClaimOrigin, ContentRequest, DocsSelectionResponse, PanelToBackground } from '../shared/messages';
-import { PANEL_PORT } from '../shared/messages';
+// Service worker: message router, selection button, hotkey, context menu, job lifecycle, persistence.
+import type { BackgroundToPanel, ContentRequest, FindSourceResponse, PanelToBackground, SelectionResponse } from '../shared/messages';
+import { isContentToBackground } from '../shared/messages';
 import type { HistoryEntry, JobState, OutputMode, SourceResult } from '../shared/types';
 import { loadSettings, rememberMode } from '../shared/settings';
 import { saveHistoryEntry } from '../shared/history';
@@ -15,6 +15,7 @@ import { cleanPdfPages } from './extract/pdfClean';
 import { stripMarkdown } from './extract/markdown';
 import { isVerbatimIn } from './match/verify';
 import { restoreJobState } from './session';
+import { TokenStore } from './panelTokens';
 
 const SESSION_KEY = 'jobState';
 const MENU_ID = 'backed-find-source';
@@ -24,12 +25,12 @@ let job: Job | null = null;
 /** Last state shown when there is no live Job (e.g. restored after the worker restarted). */
 let restored: JobState | null = null;
 const ports = new Set<chrome.runtime.Port>();
+const tokens = new TokenStore();
 
 /* ------------------------------ setup ------------------------------ */
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({ id: MENU_ID, title: 'Find a source for this', contexts: ['selection'] }, () => void chrome.runtime.lastError);
-  void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => undefined);
 });
 
 // Restore the last job; a job that was mid-flight when the worker died is marked interrupted.
@@ -212,7 +213,7 @@ async function handlePanelMessage(msg: PanelToBackground, port: chrome.runtime.P
     case 'GET_STATE':
       await restoring;
       port.postMessage({ type: 'STATE', state: currentState() } satisfies BackgroundToPanel);
-      await flushPendingClaim();
+      await flushPendingHint();
       return;
     case 'START_JOB':
       await startJob(msg.claim, msg.mode);
@@ -274,87 +275,122 @@ async function handlePanelMessage(msg: PanelToBackground, port: chrome.runtime.P
 }
 
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== PANEL_PORT || port.sender?.id !== chrome.runtime.id) return;
-  ports.add(port);
+  if (port.sender?.id !== chrome.runtime.id) return;
+  // The toolbar popup connects without a token; the in-page popup (inside a tab) must bring one.
+  const allowed = tokens.allows(port.name, !!port.sender?.tab);
   port.onDisconnect.addListener(() => ports.delete(port));
   port.onMessage.addListener((msg: PanelToBackground) => {
-    void handlePanelMessage(msg, port).catch((e: unknown) => {
-      post({ type: 'HINT', message: `Something went wrong: ${e instanceof Error ? e.message : String(e)}` });
+    void allowed.then((ok) => {
+      if (!ok) return;
+      return handlePanelMessage(msg, port).catch((e: unknown) => {
+        post({ type: 'HINT', message: `Something went wrong: ${e instanceof Error ? e.message : String(e)}` });
+      });
     });
+  });
+  void allowed.then((ok) => {
+    if (ok) ports.add(port);
+    else port.disconnect();
   });
 });
 
 /* ------------------------------ claim capture ------------------------------ */
 
-interface PendingClaim {
-  claim: string;
-  origin: ClaimOrigin;
-  autoStart: boolean;
-}
-let pending: PendingClaim | null = null;
+let pendingHint: string | null = null;
 
-async function flushPendingClaim(): Promise<void> {
-  if (!pending || !ports.size) return;
-  const p = pending;
-  pending = null;
-  post({ type: 'PENDING_CLAIM', claim: p.claim, origin: p.origin, autoStart: p.autoStart });
+async function flushPendingHint(): Promise<void> {
+  if (!pendingHint || !ports.size) return;
+  const message = pendingHint;
+  pendingHint = null;
+  post({ type: 'HINT', message });
 }
 
-async function deliverClaim(claim: string, origin: ClaimOrigin): Promise<void> {
+/** Start a search for text the user picked on a page (button, hotkey or right-click). */
+async function searchFor(claim: string): Promise<void> {
   const text = claim.replace(/\s+/g, ' ').trim().slice(0, 4000);
   if (!text) return;
   const settings = await loadSettings();
-  // Start right away (search first, ask after); the panel picks up the state when it connects.
-  pending = { claim: text, origin, autoStart: false };
-  await flushPendingClaim();
   await startJob(text, settings.lastMode);
 }
 
-function openPanel(windowId: number | undefined): void {
-  // Must be called synchronously inside the user gesture.
-  if (windowId === undefined) return;
-  void chrome.sidePanel.open({ windowId }).catch(() => undefined);
+async function sendToTab<T>(tabId: number, msg: ContentRequest): Promise<T | undefined> {
+  try {
+    return (await chrome.tabs.sendMessage(tabId, msg)) as T | undefined;
+  } catch {
+    return undefined; // no content script here (chrome:// pages, Web Store, tab opened before install)
+  }
 }
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== MENU_ID) return;
-  openPanel(tab?.windowId);
-  void deliverClaim(info.selectionText ?? '', 'context_menu');
+/** Open the in-page popup; returns false if this tab can't show it. */
+async function openInPagePopup(tabId: number): Promise<boolean> {
+  const res = await sendToTab<{ ok: boolean }>(tabId, { type: 'OPEN_PANEL', token: tokens.issue() });
+  return !!res?.ok;
+}
+
+/** Pages where content scripts can't run: fall back to the toolbar popup. */
+async function openToolbarPopup(): Promise<void> {
+  try {
+    await chrome.action.openPopup();
+  } catch {
+    // Not available (no focused window) — the user can click the toolbar icon.
+  }
+}
+
+async function selectionViaScripting(tabId: number): Promise<string> {
+  try {
+    const [res] = await chrome.scripting.executeScript({ target: { tabId }, func: () => window.getSelection()?.toString() ?? '' });
+    return typeof res?.result === 'string' ? res.result.trim() : '';
+  } catch {
+    return '';
+  }
+}
+
+// The "Find a source" button next to highlighted text.
+chrome.runtime.onMessage.addListener((msg: unknown, sender, sendResponse: (r: FindSourceResponse) => void) => {
+  if (sender.id !== chrome.runtime.id || !sender.tab || !isContentToBackground(msg)) return false;
+  sendResponse({ token: tokens.issue() });
+  void searchFor(msg.claim);
+  return false;
 });
 
-async function selectionFromTab(tab: chrome.tabs.Tab): Promise<{ text: string; origin: ClaimOrigin }> {
-  if (!tab.id) return { text: '', origin: 'hotkey' };
-  if (tab.url?.startsWith('https://docs.google.com/document/')) {
-    let text = '';
-    try {
-      const res = (await chrome.tabs.sendMessage(tab.id, { type: 'GET_DOCS_SELECTION' } satisfies ContentRequest)) as DocsSelectionResponse | undefined;
-      text = res?.text ?? '';
-    } catch {
-      // Content script not injected (tab opened before install) — fall through to the clipboard.
-    }
-    if (!text) text = await readClipboardViaOffscreen();
-    return { text, origin: 'google_docs' };
+// Keyboard shortcut (Alt+Shift+E by default; change it at chrome://extensions/shortcuts).
+async function onHotkey(tab: chrome.tabs.Tab | undefined): Promise<void> {
+  const active = tab?.id ? tab : (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+  if (!active?.id) return openToolbarPopup();
+  const sel = await sendToTab<SelectionResponse>(active.id, { type: 'GET_SELECTION' });
+  if (!sel) {
+    const text = await selectionViaScripting(active.id);
+    await openToolbarPopup();
+    if (text) await searchFor(text);
+    return;
   }
-  try {
-    const [res] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: () => window.getSelection()?.toString() ?? '' });
-    return { text: typeof res?.result === 'string' ? res.result : '', origin: 'hotkey' };
-  } catch {
-    return { text: '', origin: 'hotkey' };
+  let text = sel.text.trim();
+  // Google Docs draws text on a canvas; if Docs wouldn't hand over the selection, try the clipboard.
+  if (!text && sel.isGoogleDocs) text = (await readClipboardViaOffscreen()).trim();
+  if (text) {
+    const search = searchFor(text);
+    if (!(await openInPagePopup(active.id))) await openToolbarPopup();
+    await search;
+    return;
   }
+  // Nothing selected: the shortcut toggles the popup.
+  if (sel.panelOpen) {
+    await sendToTab(active.id, { type: 'CLOSE_PANEL' });
+    return;
+  }
+  if (sel.isGoogleDocs) pendingHint = 'Copy the sentence first (Ctrl/Cmd+C), then press the shortcut again.';
+  if (!(await openInPagePopup(active.id))) await openToolbarPopup();
 }
 
 chrome.commands.onCommand.addListener((command, tab) => {
-  if (command !== COMMAND) return;
-  openPanel(tab?.windowId);
+  if (command === COMMAND) void onHotkey(tab);
+});
+
+// Right-click → "Find a source for this".
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== MENU_ID) return;
   void (async () => {
-    const active = tab ?? (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
-    if (!active) return;
-    const { text, origin } = await selectionFromTab(active);
-    if (text.trim()) {
-      await deliverClaim(text, origin);
-    } else if (origin === 'google_docs') {
-      // Give the panel a moment to open before showing the hint.
-      setTimeout(() => post({ type: 'HINT', message: 'Copy the sentence first (Ctrl/Cmd+C), then press the hotkey again.' }), 600);
-    }
+    const search = searchFor(info.selectionText ?? '');
+    if (!tab?.id || !(await openInPagePopup(tab.id))) await openToolbarPopup();
+    await search;
   })();
 });

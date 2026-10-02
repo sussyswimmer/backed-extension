@@ -7,6 +7,8 @@ import { restoreJobState } from '../src/background/session';
 import { newJobState } from '../src/background/pipeline';
 import { redactSecrets } from '../src/shared/settings';
 import manifest from '../manifest.config';
+import { makeToken, portAllowed } from '../src/background/panelTokens';
+import { PANEL_PORT } from '../src/shared/messages';
 
 const ROOT = join(__dirname, '..');
 
@@ -44,18 +46,56 @@ describe('no HTML injection sinks, no eval / remote code', () => {
     }
   });
 
-  it('manifest CSP is strict and page access is optional', () => {
+  it('manifest: strict CSP, no side panel, only the popup page is web-accessible', () => {
     const m = manifest as unknown as {
       content_security_policy: { extension_pages: string };
-      host_permissions: string[];
-      optional_host_permissions: string[];
+      side_panel?: unknown;
+      permissions: string[];
+      action: { default_popup: string };
+      web_accessible_resources: Array<{ resources: string[]; matches: string[] }>;
+      content_scripts: Array<{ js: string[]; all_frames?: boolean }>;
     };
     const csp = m.content_security_policy.extension_pages;
     expect(csp).toContain("script-src 'self'");
     expect(csp).toContain("object-src 'self'");
     expect(csp).not.toMatch(/unsafe-eval|unsafe-inline|https?:/);
-    expect(m.host_permissions).not.toContain('<all_urls>');
-    expect(m.optional_host_permissions).toContain('<all_urls>');
+    expect(m.side_panel).toBeUndefined();
+    expect(m.permissions).not.toContain('sidePanel');
+    expect(m.action.default_popup).toBe('src/popup/index.html');
+    expect(m.web_accessible_resources.flatMap((w) => w.resources)).toEqual(['src/popup/index.html']);
+    expect(m.content_scripts.every((c) => c.all_frames === false)).toBe(true);
+  });
+});
+
+describe('content script (runs on every page)', () => {
+  const content = SRC.filter((f) => f.path.startsWith('src/content/'));
+  it('never reads the settings object that holds the API keys', () => {
+    for (const f of content) {
+      expect(f.text, f.path).not.toMatch(/loadSettings|SETTINGS_KEY|get\(\s*['"]settings['"]|deepseekKey|exaKey|openalexKey/);
+    }
+  });
+  it('builds its UI without HTML strings', () => {
+    for (const f of content) expect(f.text, f.path).not.toMatch(/innerHTML|outerHTML|insertAdjacentHTML/);
+  });
+});
+
+describe('in-page popup token', () => {
+  const t = 'ab'.repeat(16);
+  const tokens = new Set([t]);
+  it('toolbar popup (not in a tab) connects without a token', () => {
+    expect(portAllowed(PANEL_PORT, false, tokens)).toBe(true);
+  });
+  it('a popup page inside a tab needs a token the worker issued', () => {
+    expect(portAllowed(PANEL_PORT, true, tokens)).toBe(false);
+    expect(portAllowed(`${PANEL_PORT}:${t}`, true, tokens)).toBe(true);
+    expect(portAllowed(`${PANEL_PORT}:${'cd'.repeat(16)}`, true, tokens)).toBe(false);
+    expect(portAllowed(`${PANEL_PORT}:../../x`, true, tokens)).toBe(false);
+    expect(portAllowed('something-else', false, tokens)).toBe(false);
+  });
+  it('tokens are 128-bit random hex', () => {
+    const a = makeToken();
+    expect(a).toMatch(/^[0-9a-f]{32}$/);
+    expect(makeToken()).not.toBe(a);
   });
 });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { KEEP_AS_IS, type RefineCard } from '../../src/shared/types';
-import { atMaxRounds, choiceOptions, collectAnswers, EMPTY_STATE_CHIPS, hasChanges, isKeepAsIs, refiningLabel, showQuestions } from '../../src/sidepanel/lib/refine';
+import { atMaxRounds, choiceOptions, collectAnswers, EMPTY_STATE_CHIPS, hasChanges, isKeepAsIs, refiningLabel, showQuestions } from '../../src/popup/lib/refine';
 import { demoState } from './fixtures';
 
 const card: RefineCard = {

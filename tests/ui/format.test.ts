@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatAll, formatForMode } from '../../src/shared/cite';
 import { DEFAULT_SETTINGS } from '../../src/shared/settings';
-import { copyAll, copyItems, debugRows, duration, markdownFilename, usd4 } from '../../src/sidepanel/lib/format';
+import { copyAll, copyItems, debugRows, duration, markdownFilename, usd4 } from '../../src/popup/lib/format';
 import { demoState } from './fixtures';
 
 const ACCESSED = new Date(2026, 9, 2);

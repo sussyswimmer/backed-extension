@@ -6,9 +6,27 @@ export interface RichText {
   html: string;
 }
 
+function copyViaCopyEvent(value: RichText): boolean {
+  if (typeof document === 'undefined' || typeof document.execCommand !== 'function') return false;
+  const onCopy = (e: ClipboardEvent) => {
+    if (!e.clipboardData) return;
+    e.clipboardData.setData('text/html', value.html);
+    e.clipboardData.setData('text/plain', value.text);
+    e.preventDefault();
+  };
+  document.addEventListener('copy', onCopy);
+  try {
+    return document.execCommand('copy');
+  } catch {
+    return false;
+  } finally {
+    document.removeEventListener('copy', onCopy);
+  }
+}
+
 export async function copyRich(value: RichText): Promise<boolean> {
   const clip = typeof navigator !== 'undefined' ? navigator.clipboard : undefined;
-  if (!clip) return false;
+  if (!clip) return copyViaCopyEvent(value);
   try {
     if (typeof ClipboardItem !== 'undefined' && typeof clip.write === 'function') {
       await clip.write([
@@ -20,8 +38,11 @@ export async function copyRich(value: RichText): Promise<boolean> {
       return true;
     }
   } catch {
-    // Fall back to plain text below.
+    // Fall back below.
   }
+  // Inside the in-page popup (an iframe) the async clipboard API can be refused; the extension's
+  // clipboardWrite permission still allows a copy event carrying both formats.
+  if (copyViaCopyEvent(value)) return true;
   try {
     await clip.writeText(value.text);
     return true;

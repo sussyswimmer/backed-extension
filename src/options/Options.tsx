@@ -5,7 +5,6 @@ import { DEFAULT_MODEL, DEFAULT_SETTINGS, loadSettings, onSettingsChanged, saveS
 import { BrandMark, IconCheck, IconEye, IconEyeOff, IconWarn, Spinner } from '../shared/ui/Icons';
 import { testDeepSeekKey, type KeyTestResult } from './keyTest';
 
-const ALL_URLS = { origins: ['<all_urls>'] };
 
 const SOURCE_INFO: Record<SourceId, { label: string; hint: string }> = {
   openalex: { label: 'OpenAlex', hint: 'Papers and reports across all fields.' },
@@ -42,7 +41,7 @@ export function Options() {
       },
     );
     const off = onSettingsChanged((next) => {
-      // Changes from elsewhere (e.g. the side panel's style toggle) — keep fields being edited here.
+      // Changes from elsewhere (e.g. the popup's style toggle) — keep fields being edited here.
       if (Object.keys(pending.current).length === 0) setS(next);
     });
     return () => {
@@ -189,7 +188,7 @@ export function Options() {
           </div>
         </Section>
 
-        <Section title="Cost and size" description="Limits for each search (all refine rounds included).">
+        <Section title="Cost and size" description="Limits for each search round (the first search and each “search again”).">
           <div className="grid gap-4 sm:grid-cols-3">
             <NumberField
               label="Cost cap per search"
@@ -224,7 +223,7 @@ export function Options() {
           </div>
         </Section>
 
-        <Section title="Output" description="What “Copy as…” produces. You can switch any time in the side panel.">
+        <Section title="Output" description="What “Copy as…” produces. You can switch any time in the popup.">
           <Segmented<OutputMode>
             label="Default format"
             value={s.lastMode}
@@ -259,8 +258,14 @@ export function Options() {
           />
         </Section>
 
-        <Section title="Page access" description="To read full articles and PDFs, Backed needs permission to open web pages. Without it, it uses abstracts and Exa text.">
-          <PageAccess />
+        <Section title="Popup" description="Backed opens as a small popup on the page, never as a sidebar.">
+          <Toggle
+            label="Show a “Find a source” button when I highlight text"
+            hint="A small button appears next to text you select on any page. Click it to search. Turn this off to use only the keyboard shortcut."
+            checked={s.selectionButton}
+            onChange={(v) => update({ selectionButton: v })}
+          />
+          <Shortcut />
         </Section>
 
         <Section title="Advanced">
@@ -324,7 +329,7 @@ export function Options() {
                 <span className="font-semibold text-ink">Exa</span> (only with a key): search queries. Exa sends back page text.
               </li>
               <li>
-                <span className="font-semibold text-ink">Source websites:</span> Backed downloads the pages and PDFs it reads, only when page access is on.
+                <span className="font-semibold text-ink">Source websites:</span> Backed downloads the pages and PDFs it found (no cookies sent) so it can check every quotation. The “Find a source” button runs on every page but sends nothing until you click it.
               </li>
             </ul>
           </div>
@@ -718,71 +723,31 @@ function NumberField({
   );
 }
 
-function PageAccess() {
-  const [granted, setGranted] = useState<boolean | null>(null);
-  const [busy, setBusy] = useState(false);
-
+function Shortcut() {
+  const [keys, setKeys] = useState<string | null>(null);
   useEffect(() => {
-    const perms = typeof chrome !== 'undefined' ? chrome.permissions : undefined;
-    if (!perms) return;
-    perms.contains(ALL_URLS).then(setGranted, () => setGranted(false));
-    const refresh = () => {
-      perms.contains(ALL_URLS).then(setGranted, () => undefined);
-    };
-    perms.onAdded?.addListener(refresh);
-    perms.onRemoved?.addListener(refresh);
-    return () => {
-      perms.onAdded?.removeListener(refresh);
-      perms.onRemoved?.removeListener(refresh);
-    };
+    if (typeof chrome === 'undefined' || !chrome.commands?.getAll) return;
+    chrome.commands.getAll().then(
+      (all) => setKeys(all.find((c) => c.name === 'find-source')?.shortcut ?? ''),
+      () => setKeys(''),
+    );
   }, []);
-
-  const request = () => {
-    setBusy(true);
-    // Called directly in the click handler: permission prompts need a user gesture.
-    chrome.permissions.request(ALL_URLS).then(
-      (ok) => {
-        setGranted(ok);
-        setBusy(false);
-      },
-      () => setBusy(false),
-    );
-  };
-  const revoke = () => {
-    setBusy(true);
-    chrome.permissions.remove(ALL_URLS).then(
-      (removed) => {
-        if (removed) setGranted(false);
-        setBusy(false);
-      },
-      () => setBusy(false),
-    );
-  };
-
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <span
-        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px] font-medium ${
-          granted ? 'bg-accent-soft text-accent' : granted === false ? 'bg-warn text-warn-ink' : 'bg-sunk text-ink-3'
-        }`}
+      <div>
+        <p className="text-[13px] font-medium text-ink">Keyboard shortcut</p>
+        <p className="text-[12px] text-ink-3">
+          Searches the highlighted text, or opens and closes Backed when nothing is selected. In Google Docs, highlight a sentence and use the shortcut.
+        </p>
+      </div>
+      <kbd className="rounded-md border border-rule bg-sunk px-2 py-1 font-mono text-[12.5px] text-ink">{keys === null ? '…' : keys || 'Not set'}</kbd>
+      <button
+        type="button"
+        onClick={() => void chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
+        className="text-[13px] font-medium text-accent underline underline-offset-2 hover:brightness-110"
       >
-        <span className={`h-2 w-2 rounded-full ${granted ? 'bg-accent' : granted === false ? 'bg-amber-500' : 'bg-rule-strong'}`} aria-hidden="true" />
-        {granted === null ? 'Checking…' : granted ? 'On: Backed can read web pages and PDFs' : 'Off: abstracts and Exa text only'}
-      </span>
-      {granted ? (
-        <button type="button" onClick={revoke} disabled={busy} className="text-[13px] font-medium text-ink-2 underline underline-offset-2 hover:text-ink disabled:opacity-50">
-          Turn off
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={request}
-          disabled={busy || granted === null}
-          className="inline-flex h-8 items-center rounded-lg bg-accent px-3 text-[13px] font-medium text-accent-ink shadow-sm hover:brightness-110 disabled:opacity-50"
-        >
-          Allow page access
-        </button>
-      )}
+        Change shortcut
+      </button>
     </div>
   );
 }

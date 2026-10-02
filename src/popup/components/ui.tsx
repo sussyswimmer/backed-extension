@@ -1,4 +1,4 @@
-// Shared primitives for the side panel: button classes, badges, chips, external links, notify context.
+// Shared primitives for the popup: button classes, badges, chips, external links, notify context.
 import { createContext, useContext, type ReactNode, type MouseEvent } from 'react';
 import type { Relation, SourceTier } from '../../shared/types';
 import { openExternal, safeHttpUrl } from '../../shared/ui/safeUrl';

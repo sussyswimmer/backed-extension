@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FRAGMENT_GAP, quoteSegments, quoteText } from '../../src/sidepanel/lib/quote';
+import { FRAGMENT_GAP, quoteSegments, quoteText } from '../../src/popup/lib/quote';
 import { fragment } from './fixtures';
 
 describe('quoteSegments', () => {

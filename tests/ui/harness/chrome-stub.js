@@ -1,4 +1,4 @@
-// Fake `chrome` for viewing the built side panel / options page in a plain browser tab.
+// Fake `chrome` for viewing the built popup / options page in a plain browser tab.
 // Injected before any page script by tests/ui/harness/screenshot.ts. The fake service worker
 // replays a canned JobState and applies the panel's messages (pick, mode, dismiss, stop…) to it.
 (function () {

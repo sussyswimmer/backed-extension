@@ -1,4 +1,4 @@
-// Visual check for the side panel and options page.
+// Visual check for the popup and options page.
 //
 //   npx vite build && npx tsx tests/ui/harness/screenshot.ts [name-filter]
 //
@@ -122,7 +122,7 @@ interface StubConfig {
 
 interface Scenario {
   name: string;
-  page: 'sidepanel' | 'options';
+  page: 'popup' | 'options';
   width: number;
   height?: number;
   scheme: 'light' | 'dark';
@@ -144,13 +144,13 @@ const picked = () => demoState({ picked: ['rivera2019', 'natarajan2021'] });
 const scenarios: Scenario[] = [];
 for (const width of [320, 420]) {
   for (const scheme of ['light', 'dark'] as const) {
-    scenarios.push({ name: `results-${width}-${scheme}`, page: 'sidepanel', width, scheme, config: base(demoState()) });
+    scenarios.push({ name: `results-${width}-${scheme}`, page: 'popup', width, scheme, config: base(demoState()) });
   }
 }
 scenarios.push(
   {
     name: 'results-picked-320-light',
-    page: 'sidepanel',
+    page: 'popup',
     width: 320,
     height: 720,
     scheme: 'light',
@@ -160,20 +160,20 @@ scenarios.push(
       await page.evaluate("document.querySelector('article')?.scrollIntoView({ block: 'start' }); window.scrollBy(0, -56)");
     },
   },
-  { name: 'running-320-light', page: 'sidepanel', width: 320, scheme: 'light', config: base(runningState()) },
-  { name: 'running-420-dark', page: 'sidepanel', width: 420, scheme: 'dark', config: base(runningState()) },
+  { name: 'running-320-light', page: 'popup', width: 320, scheme: 'light', config: base(runningState()) },
+  { name: 'running-420-dark', page: 'popup', width: 420, scheme: 'dark', config: base(runningState()) },
   {
     name: 'picked-320-light',
-    page: 'sidepanel',
+    page: 'popup',
     width: 320,
     scheme: 'light',
     config: base(picked()),
     act: makeOutput,
   },
-  { name: 'picked-420-dark', page: 'sidepanel', width: 420, scheme: 'dark', config: base(picked()), act: makeOutput },
+  { name: 'picked-420-dark', page: 'popup', width: 420, scheme: 'dark', config: base(picked()), act: makeOutput },
   {
     name: 'picked-debate-420-light',
-    page: 'sidepanel',
+    page: 'popup',
     width: 420,
     scheme: 'light',
     config: base(demoState({ mode: 'debate', picked: ['rivera2019', 'natarajan2021'] })),
@@ -184,7 +184,7 @@ scenarios.push(
   },
   {
     name: 'debate-pushback-420-light',
-    page: 'sidepanel',
+    page: 'popup',
     width: 420,
     scheme: 'light',
     config: base(demoState({ mode: 'debate', refineDismissed: true })),
@@ -192,12 +192,12 @@ scenarios.push(
       await page.getByRole('tab', { name: /Pushback/ }).click();
     },
   },
-  { name: 'input-320-dark', page: 'sidepanel', width: 320, scheme: 'dark', config: base(null, { hint: 'Copy the sentence first (Ctrl/Cmd+C), then press the hotkey again.' }) },
-  { name: 'input-nokey-420-light', page: 'sidepanel', width: 420, scheme: 'light', config: base(null, { settings: demoSettings({ deepseekKey: '' }) }) },
-  { name: 'empty-320-light', page: 'sidepanel', width: 320, scheme: 'light', config: base(emptyState()) },
+  { name: 'input-320-dark', page: 'popup', width: 320, scheme: 'dark', config: base(null, { hint: 'Copy the sentence first (Ctrl/Cmd+C), then press the hotkey again.' }) },
+  { name: 'input-nokey-420-light', page: 'popup', width: 420, scheme: 'light', config: base(null, { settings: demoSettings({ deepseekKey: '' }) }) },
+  { name: 'empty-320-light', page: 'popup', width: 320, scheme: 'light', config: base(emptyState()) },
   {
     name: 'error-320-dark',
-    page: 'sidepanel',
+    page: 'popup',
     width: 320,
     scheme: 'dark',
     config: base(
@@ -211,7 +211,7 @@ scenarios.push(
   },
   {
     name: 'history-420-light',
-    page: 'sidepanel',
+    page: 'popup',
     width: 420,
     scheme: 'light',
     config: base(demoState()),
@@ -222,7 +222,7 @@ scenarios.push(
   },
   {
     name: 'debug-420-dark',
-    page: 'sidepanel',
+    page: 'popup',
     width: 420,
     height: 1100,
     scheme: 'dark',
@@ -241,7 +241,7 @@ scenarios.push(
 
 async function main(): Promise<void> {
   const filter = process.argv[2];
-  if (!existsSync(join(dist, 'src/sidepanel/index.html'))) throw new Error('dist/ is missing. Run `npx vite build` first.');
+  if (!existsSync(join(dist, 'src/popup/index.html'))) throw new Error('dist/ is missing. Run `npx vite build` first.');
   mkdirSync(outDir, { recursive: true });
   const stub = readFileSync(join(here, 'chrome-stub.js'), 'utf8');
   const pw = loadPlaywright();
@@ -263,8 +263,11 @@ async function main(): Promise<void> {
         if (msg.type() === 'error') problems.push(`${sc.name}: console error: ${msg.text()}`);
       });
       await page.addInitScript({ content: `${stub}\nwindow.__installChromeStub(${JSON.stringify(sc.config)});` });
-      const path = sc.page === 'options' ? 'src/options/index.html' : 'src/sidepanel/index.html';
+      const path = sc.page === 'options' ? 'src/options/index.html' : 'src/popup/index.html';
       await page.goto(`${origin}/${path}`, { waitUntil: 'networkidle' });
+      // The viewport stands in for the popup's frame: use the in-page (framed) layout, which fills
+      // whatever size it gets. (The toolbar popup is the same layout fixed at 400px wide.)
+      if (sc.page === 'popup') await page.evaluate("document.documentElement.classList.replace('bk-toolbar', 'bk-framed')");
       await page.waitForTimeout(400);
       if (sc.act) await sc.act(page);
       await page.waitForTimeout(250);

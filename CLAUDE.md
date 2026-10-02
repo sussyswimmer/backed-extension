@@ -14,7 +14,7 @@ One user (me), three jobs. The chosen format only changes what "Copy as…" prod
 - **Debate cards** — tag + debate cite + verbatim passage with the matching sentences bolded/underlined. Pushback section matters most here.
 
 ## Core user flow (search first, ask after)
-1. **Input** — side panel text box, right-click "Find a source for this" on selected text on any webpage, **highlight a sentence in Google Docs + hotkey** (`Alt+Shift+E`), or hotkey anywhere. Copy format remembered from last time (Paper / Essay / Debate).
+1. **Input** — **no side panel; Backed is a popup.** Highlight text on any page → a small "Find a source" button appears → click it and the popup opens next to the text. Or press the hotkey (`Alt+Shift+E`, customizable), which also works when you **highlight a sentence in Google Docs**. The toolbar icon opens the same popup with a text box; right-click "Find a source for this" also works. Copy format remembered from last time (Paper / Essay / Debate).
 2. **Quick plan** — DeepSeek turns the raw claim into a query plan (paraphrases, keywords, per-source queries) with **no questions asked**.
 3. **First search** — parallel source adapters: OpenAlex, Semantic Scholar, arXiv, and Exa (semantic web search for general web, news, think tanks, and gov/IGO domains).
 4. **Extract & match** — get page text (Exa contents or our own fetch; HTML + PDF), chunk, pre-rank locally (BM25), then DeepSeek labels each passage: `direct`, `paraphrase`, `partial`, `contradicts`, `irrelevant`. Verified results stream into the panel.
@@ -34,10 +34,10 @@ One user (me), three jobs. The chosen format only changes what "Copy as…" prod
 
 ## Stack
 - Vite + TypeScript, MV3 (use `@crxjs/vite-plugin`)
-- React + Tailwind for the side panel and options page
+- React + Tailwind for the popup (toolbar popup + in-page card) and options page
 - Service worker = orchestrator (all network calls live here; it bypasses CORS via `host_permissions`)
 - `@mozilla/readability` for HTML extraction, `pdfjs-dist` for PDFs — both in an **offscreen document** (needs DOM)
-- Content script on `docs.google.com/document/*` to grab the highlighted text from Google Docs (see Brief 01)
+- Content script on every page: the "Find a source" button on highlighted text, the in-page popup (an iframe of the popup page, token-guarded), and Google Docs selection grabbing
 - `zod` for validating every LLM JSON response
 - `vitest` for tests
 - DeepSeek via its OpenAI-compatible endpoint (`https://api.deepseek.com/chat/completions`), JSON mode on. Model name is a setting, default `deepseek-chat`. Check DeepSeek's docs for current model names before hardcoding anything.
@@ -58,8 +58,8 @@ backed/
       match/           # passage scoring, verification, ranking
       cite/            # citation formatters
     offscreen/         # DOM-needing work (readability, pdf.js)
-    content/docs.ts    # Google Docs selection grabber
-    sidepanel/         # React app: input, results, refine, output, history
+    content/           # main.ts: selection button + in-page popup; docs.ts: Google Docs selection
+    popup/             # React app: input, results, refine, output, history
     options/           # React: keys, model, source toggles, cost cap
     shared/            # types, messages, storage helpers
   tests/
@@ -79,7 +79,7 @@ backed/
 - Strict TypeScript, no `any`. Every cross-boundary message typed in `shared/messages.ts`.
 - Every LLM call goes through `llm/deepseek.ts` and is parsed with a zod schema. On parse failure: one retry with the error appended, then fail gracefully.
 - Every network call has a timeout (default 12s) and is cancellable via `AbortController` (user can hit Stop).
-- Pipeline emits progress events to the side panel (`stage`, `message`, `percent`) so the UI never looks frozen.
+- Pipeline emits progress events to the popup (`stage`, `message`, `percent`) so the UI never looks frozen.
 - No secrets in logs. Redact keys in any error shown to the user.
 
 ## Definition of done (whole project)

@@ -1,7 +1,7 @@
 // Panel-wide shortcuts. Pure mapping from a key press to an action so it can be unit-tested.
 // Enter-to-submit lives on the claim textarea itself; everything here ignores keys typed into fields.
 
-export type KeyAction = { type: 'stop' } | { type: 'togglePick'; index: number } | { type: 'focusRefine' };
+export type KeyAction = { type: 'close' } | { type: 'togglePick'; index: number } | { type: 'focusRefine' };
 
 export interface KeyInput {
   key: string;
@@ -26,9 +26,12 @@ export interface KeyContext {
 }
 
 export function keyAction(k: KeyInput, ctx: KeyContext): KeyAction | null {
-  if (k.isComposing || k.defaultPrevented || k.editable) return null;
+  if (k.isComposing || k.defaultPrevented) return null;
   if (k.ctrlKey || k.metaKey || k.altKey) return null;
-  if (k.key === 'Escape' || k.key === 'Esc') return ctx.running ? { type: 'stop' } : null;
+  // Esc closes the popup, even from a text field. A running search keeps going in the background
+  // (reopen with the shortcut); the Stop button stops it.
+  if (k.key === 'Escape' || k.key === 'Esc') return { type: 'close' };
+  if (k.editable) return null;
   if (!ctx.resultsVisible) return null;
   if (/^[1-9]$/.test(k.key)) {
     const index = Number(k.key) - 1;

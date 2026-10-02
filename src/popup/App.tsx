@@ -6,6 +6,10 @@ import { Spinner } from '../shared/ui/Icons';
 import { isEditableTarget, keyAction, type KeyContext } from './lib/keyboard';
 import { displayClaim, displayLists, isActive, isEmptyResult, pickedResults, visibleWarnings, type DebateTab } from './lib/view';
 import { usePanelPort } from './usePanelPort';
+import { closePopup, isFramed } from './embed';
+
+/** Inside a web page, show nothing until the service worker has accepted this popup's token. */
+const FRAMED = isFramed();
 import { Banners } from './components/Banners';
 import { ClaimHeader } from './components/ClaimHeader';
 import { ClaimInput } from './components/ClaimInput';
@@ -19,8 +23,6 @@ import { Results } from './components/Results';
 import { Toast, type ToastMessage } from './components/Toast';
 import { TopBar, type PanelTab } from './components/TopBar';
 import { btn, NotifyContext } from './components/ui';
-
-const ALL_URLS = { origins: ['<all_urls>'] };
 
 export function App() {
   const settingsLive = useSettings();
@@ -44,8 +46,6 @@ export function App() {
   const [waited, setWaited] = useState(false);
   const [accessed, setAccessed] = useState(() => new Date());
 
-  const pageAccess = useRef<boolean | null>(null);
-  const askedAccess = useRef(false);
   const refineRef = useRef<HTMLElement | null>(null);
   const modeRef = useRef<OutputMode>('essay');
   const startRef = useRef<(claim: string) => void>(() => undefined);
@@ -83,7 +83,7 @@ export function App() {
   const warnings = useMemo(() => (state ? visibleWarnings(state, dismissed) : []), [state, dismissed]);
   const picked = useMemo(() => (state ? pickedResults(state) : []), [state]);
 
-  const showInput = (!state && (loaded || waited)) || editing;
+  const showInput = (!state && (loaded || (waited && !FRAMED))) || editing;
   const resultsVisible = tab === 'search' && !showInput && !pendingStart && screen === 'results' && !!state;
 
   /* ------------------------------ effects ------------------------------ */
@@ -119,30 +119,6 @@ export function App() {
     return () => clearTimeout(t);
   }, [pendingStart]);
 
-  // Track the optional <all_urls> permission so the request can run synchronously in the gesture.
-  useEffect(() => {
-    const perms = typeof chrome !== 'undefined' ? chrome.permissions : undefined;
-    if (!perms) return;
-    perms.contains(ALL_URLS).then(
-      (v) => {
-        pageAccess.current = v;
-      },
-      () => undefined,
-    );
-    const onAdded = (p: chrome.permissions.Permissions) => {
-      if (p.origins?.includes('<all_urls>')) pageAccess.current = true;
-    };
-    const onRemoved = (p: chrome.permissions.Permissions) => {
-      if (p.origins?.includes('<all_urls>')) pageAccess.current = false;
-    };
-    perms.onAdded?.addListener(onAdded);
-    perms.onRemoved?.addListener(onRemoved);
-    return () => {
-      perms.onAdded?.removeListener(onAdded);
-      perms.onRemoved?.removeListener(onRemoved);
-    };
-  }, []);
-
   /* ------------------------------ actions ------------------------------ */
 
   const changeMode = useCallback(
@@ -154,36 +130,14 @@ export function App() {
     [send],
   );
 
-  /** Runs inside the click / Enter handler so the permission prompt counts as a user gesture. */
   const startJob = (claim: string) => {
     const text = claim.trim();
     if (!text) return;
-    const m = modeRef.current;
-    const go = () => send({ type: 'START_JOB', claim: text, mode: m });
     setPendingStart({ prevJobId: state?.jobId, claim: text });
     setEditing(false);
     setScreen('results');
     setTab('search');
-    const perms = typeof chrome !== 'undefined' ? chrome.permissions : undefined;
-    if (pageAccess.current !== true && !askedAccess.current && perms && typeof perms.request === 'function') {
-      askedAccess.current = true;
-      let req: Promise<boolean>;
-      try {
-        req = perms.request(ALL_URLS);
-      } catch {
-        go();
-        return;
-      }
-      req.then(
-        (granted) => {
-          pageAccess.current = granted;
-          go();
-        },
-        () => go(),
-      );
-      return;
-    }
-    go();
+    send({ type: 'START_JOB', claim: text, mode: modeRef.current });
   };
   useLayoutEffect(() => {
     startRef.current = startJob;
@@ -261,7 +215,7 @@ export function App() {
       );
       if (!action) return;
       e.preventDefault();
-      if (action.type === 'stop') send({ type: 'STOP_JOB' });
+      if (action.type === 'close') closePopup();
       else if (action.type === 'togglePick') {
         const r = orderedRef.current[action.index];
         if (r) send({ type: 'TOGGLE_PICK', candidateId: r.candidateId });
@@ -359,6 +313,16 @@ export function App() {
   }
 
   const showPickBar = resultsVisible && picked.length > 0;
+
+  if (FRAMED && !loaded) {
+    // No STATE yet: either still connecting, or the token was refused (a page embedding us).
+    // Render nothing from storage — no input, no history — so there is nothing to click.
+    return (
+      <div className="flex min-h-screen items-center justify-center gap-2 text-[13px] text-ink-3" aria-live="polite">
+        <Spinner className="h-4 w-4" /> Connecting…
+      </div>
+    );
+  }
 
   return (
     <NotifyContext.Provider value={notify}>

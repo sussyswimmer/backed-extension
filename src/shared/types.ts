@@ -1,4 +1,4 @@
-// Core domain types shared by the service worker, offscreen document and side panel.
+// Core domain types shared by the service worker, offscreen document, content script and popup.
 // Everything here must be JSON-serializable: it crosses chrome.runtime messaging and storage.
 
 export type OutputMode = 'paper' | 'essay' | 'debate';
@@ -402,6 +402,8 @@ export interface Settings {
   citationStyles: CitationStyles;
   honestyLine: boolean;
   showDebug: boolean;
+  /** Show the small "Find a source" button when text is highlighted on a page. */
+  selectionButton: boolean;
   /** DeepSeek prices in USD per 1M tokens (peak rates by default, so estimates err high). */
   prices: { inputCacheMiss: number; inputCacheHit: number; output: number };
 }

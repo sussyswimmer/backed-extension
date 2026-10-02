@@ -1,16 +1,6 @@
 // @vitest-environment jsdom
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
-type Grab = () => { text: string; method: string };
-let grabSelection: Grab;
-let listener: ((msg: unknown, sender: { id?: string }, respond: (r: unknown) => void) => boolean) | undefined;
-
-beforeAll(async () => {
-  (globalThis as unknown as { chrome: unknown }).chrome = {
-    runtime: { id: 'ext-id', onMessage: { addListener: (fn: typeof listener) => (listener = fn) } },
-  };
-  ({ grabSelection } = (await import('../../src/content/docs')) as unknown as { grabSelection: Grab });
-});
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { grabDocsSelection } from '../../src/content/docs';
 
 beforeEach(() => {
   document.body.innerHTML = '';
@@ -23,7 +13,7 @@ describe('Google Docs selection grabber', () => {
     const range = document.createRange();
     range.selectNodeContents(document.getElementById('p')!);
     window.getSelection()!.addRange(range);
-    expect(grabSelection()).toEqual({ text: 'Minimum wage hikes do not cost jobs.', method: 'selection' });
+    expect(grabDocsSelection()).toEqual({ text: 'Minimum wage hikes do not cost jobs.', method: 'selection' });
   });
 
   it('falls back to asking Docs to copy and reading the copy event', () => {
@@ -33,19 +23,11 @@ describe('Google Docs selection grabber', () => {
       document.dispatchEvent(e);
       return true;
     });
-    expect(grabSelection()).toEqual({ text: 'Copied from the canvas.', method: 'copy_event' });
+    expect(grabDocsSelection()).toEqual({ text: 'Copied from the canvas.', method: 'copy_event' });
   });
 
   it('reports nothing so the worker can try the clipboard and then show the hint', () => {
     document.execCommand = vi.fn(() => false);
-    expect(grabSelection()).toEqual({ text: '', method: 'none' });
-  });
-
-  it('only answers our own extension', () => {
-    const respond = vi.fn();
-    listener?.({ type: 'GET_DOCS_SELECTION' }, { id: 'someone-else' }, respond);
-    expect(respond).not.toHaveBeenCalled();
-    listener?.({ type: 'GET_DOCS_SELECTION' }, { id: 'ext-id' }, respond);
-    expect(respond).toHaveBeenCalledWith(expect.objectContaining({ method: expect.any(String) }));
+    expect(grabDocsSelection()).toEqual({ text: '', method: 'none' });
   });
 });

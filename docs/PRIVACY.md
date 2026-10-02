@@ -23,12 +23,13 @@ Keys are only sent to the service they belong to, always in a request **header**
 | **Exa** (`api.exa.ai`), only if you add a key | Search sentences and domain filters | Finding web, news, think-tank and government sources |
 | **The source websites themselves** | A normal page request (no cookies) for the pages and PDFs that were found | Reading the real text so every quotation can be verified |
 
-Backed never sends your browsing history, other tabs, or Google Docs content beyond the sentence you highlight and ask about.
+Backed never sends your browsing history, other tabs, page content, or Google Docs content beyond the sentence you highlight and ask about.
 
 ## Permissions
 
-- `storage`, `sidePanel`, `contextMenus`, `offscreen`: the extension itself.
-- `activeTab`, `scripting`: read the text you highlighted when you use the hotkey or right-click menu.
+- `storage`, `contextMenus`, `offscreen`: the extension itself.
+- `activeTab`, `scripting`: read the text you highlighted when you use the shortcut on pages where the content script isn't running.
 - `clipboardRead`, `clipboardWrite`: Google Docs fallback (Docs draws text on a canvas, so the highlighted sentence is read from a copy) and the "Copy as…" buttons.
-- Host access to the five APIs above.
-- **Optional** access to all sites, requested the first time you search: only used to download the pages/PDFs that were found, so their text can be checked. If you say no, Backed works with search-engine text and abstracts (marked "Abstract only").
+- Access to all sites, for two things:
+  - the small **"Find a source" button** that appears when you highlight text. It runs on every page but sends nothing anywhere until you click it (or press the shortcut). It only reads its own on/off setting, never your keys.
+  - downloading the pages and PDFs that a search found (no cookies sent), so every quotation can be checked against the real text.

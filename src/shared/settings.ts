@@ -1,4 +1,5 @@
 import type { OutputMode, Settings, SourceId } from './types';
+import { SELECTION_BUTTON_KEY } from './storageKeys';
 
 export const DEFAULT_MODEL = 'deepseek-flash';
 
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   citationStyles: { paper: 'apa', essay: 'mla' },
   honestyLine: true,
   showDebug: false,
+  selectionButton: true,
   // deepseek-flash peak prices (USD / 1M tokens) from api-docs.deepseek.com, Oct 2026.
   prices: { inputCacheMiss: 0.3, inputCacheHit: 0.006, output: 1.2 },
 };
@@ -62,6 +64,7 @@ export function mergeSettings(stored: unknown): Settings {
   }
   if (typeof s.honestyLine === 'boolean') out.honestyLine = s.honestyLine;
   if (typeof s.showDebug === 'boolean') out.showDebug = s.showDebug;
+  if (typeof s.selectionButton === 'boolean') out.selectionButton = s.selectionButton;
   if (isRecord(s.prices)) {
     const p = s.prices as Record<string, unknown>;
     if (typeof p.inputCacheMiss === 'number') out.prices.inputCacheMiss = p.inputCacheMiss;
@@ -79,7 +82,7 @@ export async function loadSettings(): Promise<Settings> {
 export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
   const current = await loadSettings();
   const next = mergeSettings({ ...current, ...patch });
-  await chrome.storage.local.set({ [SETTINGS_KEY]: next });
+  await chrome.storage.local.set({ [SETTINGS_KEY]: next, [SELECTION_BUTTON_KEY]: next.selectionButton });
   return next;
 }
 

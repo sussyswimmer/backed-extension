@@ -2,10 +2,22 @@
 import type { JobState, OutputMode, RefineAnswer } from './types';
 
 /* ------------------------------------------------------------------ */
-/* Side panel <-> service worker (long-lived port named PANEL_PORT)    */
+/* Popup <-> service worker (long-lived port named PANEL_PORT)          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The toolbar popup connects as `PANEL_PORT`. The in-page popup (an iframe on a web page) connects
+ * as `PANEL_PORT:<token>`, with a one-time token the service worker handed to the content script,
+ * so a web page that embeds the popup page itself gets nothing.
+ */
 export const PANEL_PORT = 'backed-panel';
+
+export function panelPortName(token?: string): string {
+  return token ? `${PANEL_PORT}:${token}` : PANEL_PORT;
+}
+
+/** Message the in-page popup posts to its parent page to ask the content script to close it. */
+export const FRAME_CLOSE = 'backed:close';
 
 export type PanelToBackground =
   | { type: 'GET_STATE' }
@@ -29,7 +41,7 @@ export type BackgroundToPanel =
   | { type: 'HINT'; message: string }
   | { type: 'REVERIFY_RESULT'; candidateId: string; ok: boolean; message: string };
 
-export type ClaimOrigin = 'panel' | 'context_menu' | 'hotkey' | 'google_docs';
+export type ClaimOrigin = 'panel' | 'context_menu' | 'hotkey' | 'google_docs' | 'selection_button';
 
 /* ------------------------------------------------------------------ */
 /* Service worker -> offscreen document (chrome.runtime.sendMessage)    */
@@ -69,14 +81,39 @@ export type OffscreenRequest =
 export type OffscreenResponse<T> = { ok: true; data: T } | { ok: false; error: string };
 
 /* ------------------------------------------------------------------ */
-/* Service worker -> Google Docs content script (chrome.tabs.sendMessage) */
+/* Service worker <-> content script (every page)                      */
 /* ------------------------------------------------------------------ */
 
-export type ContentRequest = { type: 'GET_DOCS_SELECTION' };
+export type ContentRequest =
+  /** Hotkey pressed: report the selection (Google Docs-aware) and whether a popup is open. */
+  | { type: 'GET_SELECTION' }
+  | { type: 'OPEN_PANEL'; token: string }
+  | { type: 'CLOSE_PANEL' };
 
+export interface SelectionResponse {
+  text: string;
+  method: 'selection' | 'input' | 'copy_event' | 'none';
+  isGoogleDocs: boolean;
+  panelOpen: boolean;
+}
+
+/** Content script -> service worker (chrome.runtime.sendMessage). */
+export type ContentToBackground =
+  /** The user clicked the "Find a source" button next to a selection. Reply: { token }. */
+  { type: 'FIND_SOURCE'; claim: string };
+
+export interface FindSourceResponse {
+  token: string;
+}
+
+/** Back-compat name used by tests of the Docs grabber. */
 export interface DocsSelectionResponse {
   text: string;
   method: 'selection' | 'copy_event' | 'none';
+}
+
+export function isContentToBackground(msg: unknown): msg is ContentToBackground {
+  return typeof msg === 'object' && msg !== null && (msg as { type?: unknown }).type === 'FIND_SOURCE' && typeof (msg as { claim?: unknown }).claim === 'string';
 }
 
 export function isOffscreenRequest(msg: unknown): msg is OffscreenRequest {

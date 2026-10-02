@@ -2,7 +2,8 @@
 // backoff when the worker restarts, and queues messages sent while disconnected.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BackgroundToPanel, PanelToBackground } from '../shared/messages';
-import { PANEL_PORT } from '../shared/messages';
+import { panelPortName } from '../shared/messages';
+import { frameToken, isFramed } from './embed';
 import type { JobState } from '../shared/types';
 
 type PendingClaimMsg = Extract<BackgroundToPanel, { type: 'PENDING_CLAIM' }>;
@@ -66,8 +67,11 @@ export function usePanelPort(handlers: PortHandlers): PanelPort {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let attempt = 0;
 
+    let everAnswered = false;
     const scheduleReconnect = () => {
       if (disposed || timer !== undefined) return;
+      // An in-page popup whose token the worker refused gets disconnected at once: stop retrying.
+      if (isFramed() && !everAnswered && attempt >= 3) return;
       timer = setTimeout(() => {
         timer = undefined;
         connect();
@@ -78,6 +82,7 @@ export function usePanelPort(handlers: PortHandlers): PanelPort {
     const onMessage = (raw: unknown) => {
       if (!isBackgroundMessage(raw)) return;
       attempt = 0;
+      everAnswered = true;
       switch (raw.type) {
         case 'STATE':
           setState(raw.state);
@@ -97,9 +102,12 @@ export function usePanelPort(handlers: PortHandlers): PanelPort {
 
     function connect() {
       if (disposed) return;
+      // Inside a web page the popup must carry the token the content script was given.
+      const token = frameToken();
+      if (isFramed() && !token) return;
       let port: chrome.runtime.Port;
       try {
-        port = chrome.runtime.connect({ name: PANEL_PORT });
+        port = chrome.runtime.connect({ name: panelPortName(token) });
       } catch {
         setConnected(false);
         scheduleReconnect();

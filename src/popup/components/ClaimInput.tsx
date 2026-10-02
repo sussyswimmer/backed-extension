@@ -108,7 +108,8 @@ export function ClaimInput({
           <span className="font-semibold text-ink-2">Debate</span> builds cards and shows pushback.
         </p>
         <p>
-          Tip: highlight a sentence on any page or in Google Docs and press <kbd className="font-semibold text-ink-2">Alt+Shift+E</kbd>.
+          Tip: highlight a sentence on any page and click <span className="font-semibold text-ink-2">Find a source</span>, or press{' '}
+          <kbd className="font-semibold text-ink-2">Alt+Shift+E</kbd> (also works in Google Docs).
         </p>
       </div>
     </form>

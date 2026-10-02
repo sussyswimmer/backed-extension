@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { classifyKeyResponse, DEEPSEEK_MODELS_URL, parseModelIds, testDeepSeekKey } from '../../src/options/keyTest';
 import { safeHttpUrl } from '../../src/shared/ui/safeUrl';
-import { isBackgroundMessage, reconnectDelay } from '../../src/sidepanel/usePanelPort';
+import { isBackgroundMessage, reconnectDelay } from '../../src/popup/usePanelPort';
 
 describe('isBackgroundMessage', () => {
   it('accepts our messages and rejects anything else', () => {

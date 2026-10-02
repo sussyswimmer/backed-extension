@@ -4,7 +4,8 @@
 //   2. the hidden text-event iframe's selection,
 //   3. asking Docs to copy the selection and reading it from the copy event.
 // If all fail, the service worker falls back to the clipboard and finally shows a hint.
-import type { ContentRequest, DocsSelectionResponse } from '../shared/messages';
+// Used by the main content script (src/content/main.ts) on docs.google.com.
+import type { DocsSelectionResponse } from '../shared/messages';
 
 function domSelection(win: Window | null | undefined): string {
   try {
@@ -40,7 +41,7 @@ function viaCopyEvent(): string {
   return captured.trim();
 }
 
-function grabSelection(): DocsSelectionResponse {
+export function grabDocsSelection(): DocsSelectionResponse {
   const direct = domSelection(window);
   if (direct) return { text: direct, method: 'selection' };
   const frameSel = domSelection(textEventFrame()?.contentWindow);
@@ -49,11 +50,3 @@ function grabSelection(): DocsSelectionResponse {
   if (copied) return { text: copied, method: 'copy_event' };
   return { text: '', method: 'none' };
 }
-
-chrome.runtime.onMessage.addListener((msg: ContentRequest, sender, sendResponse: (r: DocsSelectionResponse) => void) => {
-  if (sender.id !== chrome.runtime.id || msg?.type !== 'GET_DOCS_SELECTION') return false;
-  sendResponse(grabSelection());
-  return false;
-});
-
-export { grabSelection };

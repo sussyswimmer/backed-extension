@@ -2,11 +2,11 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { isEditableTarget } from '../../src/sidepanel/lib/keyboard';
-import { ResultCard } from '../../src/sidepanel/components/ResultCard';
-import { RefinePanel } from '../../src/sidepanel/components/RefinePanel';
-import { Results } from '../../src/sidepanel/components/Results';
-import { displayLists } from '../../src/sidepanel/lib/view';
+import { isEditableTarget } from '../../src/popup/lib/keyboard';
+import { ResultCard } from '../../src/popup/components/ResultCard';
+import { RefinePanel } from '../../src/popup/components/RefinePanel';
+import { Results } from '../../src/popup/components/Results';
+import { displayLists } from '../../src/popup/lib/view';
 import type { RefineAnswer, SourceResult } from '../../src/shared/types';
 import { KEEP_AS_IS } from '../../src/shared/types';
 import { demoState, emptyState, fragment, result, verified, WIKI_META } from './fixtures';

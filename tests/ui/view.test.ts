@@ -13,7 +13,7 @@ import {
   scopeNotes,
   visibleWarnings,
   warningKey,
-} from '../../src/sidepanel/lib/view';
+} from '../../src/popup/lib/view';
 import { demoState, emptyState } from './fixtures';
 
 const none = new Set<string>();

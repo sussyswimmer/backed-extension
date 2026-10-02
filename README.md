@@ -12,17 +12,22 @@ npm run build          # → dist/
 ```
 
 1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick `dist/`.
-2. Click the Backed icon → the side panel opens. Open **Options** (right-click the icon → Options).
+2. Open **Options** (right-click the Backed icon → Options).
 3. Paste your **DeepSeek key** (required). Optionally add an **Exa key** (turns on web, news, think tank and government sources), an **OpenAlex key** and a contact email.
-4. On your first search Chrome asks to let Backed read web pages. Allow it so quotations can be checked against the full text; if you say no, Backed uses search-engine text and abstracts (marked *Abstract only*).
 
 `npm run dev` runs Vite with hot reload (load `dist/` the same way).
 
 ## Use
 
-- **Side panel:** type a claim, pick **Paper / Essay / Debate**, press Enter.
-- **Any page:** select text → right-click → **Find a source for this**.
-- **Google Docs:** highlight a sentence and press **Alt+Shift+E**. If Docs won't hand over the selection, Backed reads the clipboard; if that's empty it asks you to copy the sentence first.
+Backed never takes over the side of your screen. It opens as a small popup only when you ask:
+
+- **Highlight text on any page** → a small **Find a source** button appears next to it. Click it and the Backed popup opens right there and starts searching.
+- **Keyboard shortcut** (default **Alt+Shift+E**; change it at `chrome://extensions/shortcuts` or Options → Change shortcut) → searches whatever is highlighted and opens the popup. With nothing highlighted it opens or closes the popup.
+- **Google Docs:** Docs draws text on a canvas, so the highlight button can't see your selection there. Highlight a sentence and press the shortcut. If Docs won't hand over the selection, Backed reads the clipboard; if that's empty it asks you to copy the sentence first.
+- **Toolbar icon** → the same popup in Chrome's normal extension popup (type a claim, or open History). Pages where extensions can't run (`chrome://` pages, the Web Store) also use this.
+- **Right-click** selected text → **Find a source for this** works too.
+
+Close the popup with **×** or **Esc**. A search keeps running in the background; press the shortcut again to reopen it. Don't want the highlight button? Turn it off in Options → Popup and use only the shortcut.
 
 Results appear as they're verified (Support / Pushback). Then Backed asks 1–3 questions about gaps in what it found ("These are all US studies — want another country?"). Answer to search again (up to 3 rounds), or just tap **Use this** on the sources that fit and **Make output**: each picked source shows its link, an AI summary (labelled), and the verified quotation, with **Copy as…** citation (APA 7 / Chicago / MLA 9), in-text citation, debate card (rich text for Google Docs/Word), or link + summary + quote. Finished jobs are kept in **History**.
 
@@ -44,7 +49,9 @@ node scripts/make-icons.mjs
 npm run version:bump -- patch
 ```
 
-**UI screenshots** of every panel state (320 px and 420 px, light and dark) are in [`docs/screenshots/`](docs/screenshots). Regenerate them with `npx vite build && npx tsx tests/ui/harness/screenshot.ts` (uses Playwright + Chromium with a stubbed `chrome` API; fails on page errors or horizontal overflow).
+**UI screenshots** of every popup state (320 px and 420 px, light and dark) are in [`docs/screenshots/`](docs/screenshots). Regenerate them with `npx vite build && npx tsx tests/ui/harness/screenshot.ts` (uses Playwright + Chromium with a stubbed `chrome` API; fails on page errors or horizontal overflow).
+
+**Real-extension check:** `npx vite build && npx tsx tests/ui/harness/e2e-popup.mts` loads the built extension into Chromium, highlights text on a page, clicks **Find a source**, and checks the in-page popup opens, connects and closes with Esc, and that a page embedding the popup page itself gets nothing (`docs/screenshots/popup-*.png`).
 
 **Text-fragment links on real sites:** `NODE_USE_ENV_PROXY=1 npx tsx scripts/check-text-fragments.mts` (needs Playwright + full Chromium). Last run: Wikipedia, US Department of Labor and the Stanford Encyclopedia of Philosophy all scrolled to the passage.
 
@@ -72,8 +79,9 @@ src/background/          service worker: router, pipeline, LLM, sources, extract
   extract/               fetch, Exa-markdown cleanup, PDF cleanup, sentences, chunks, BM25
   match/                 LLM matching, verify(), ranking, summaries
 src/offscreen/           Readability + pdf.js + clipboard (needs a DOM)
+src/content/main.ts      every page: "Find a source" button on highlight, in-page popup, shortcut
 src/content/docs.ts      Google Docs selection grabber
-src/sidepanel/           React side panel: results, refine card, picked view, history
+src/popup/               React popup (toolbar popup + in-page card): results, refine, picked view, history
 src/options/             React options page
 src/shared/              types, messages, settings, history, cite/ (citation formatters)
 tests/                   unit, integration (scripted fake DeepSeek), fixtures, golden claims
@@ -96,7 +104,7 @@ docs/                    briefs, privacy note, screenshots
 | Huge PDF | First 60 pages + later pages mentioning key terms | `tests/extract/pdf.test.ts`; pipeline (match on page 70 of 80) |
 | Service worker killed mid-job | Restored from `chrome.storage.session` as "Search interrupted" + Retry | `tests/security.test.ts` › service worker killed; manual check |
 | User hits Stop | All fetches aborted within 1 s, partial results kept | pipeline › Stop |
-| Google Docs selection unreadable | Clipboard fallback; if empty: "Copy the sentence first, then press the hotkey" | manual check (needs Chrome + Docs) |
+| Google Docs selection unreadable | Clipboard fallback; if empty: "Copy the sentence first, then press the shortcut" | `tests/content/docs.test.ts`; manual check in Docs |
 | Summary has a number not in the source | That sentence is dropped | `tests/match/rank-summary.test.ts`; pipeline › first round |
 | Cost cap hit | Matching stops, verified results shown, note added | pipeline › cost cap |
 
@@ -109,10 +117,11 @@ The briefs were written before some APIs changed; I checked current docs (Oct 20
 - **OpenAlex** now has optional free API keys; Backed sends it as a bearer header (never in the URL).
 - **arXiv** queries are built as `all:a AND all:b …` (with an OR fallback), since a bare `all:a b c` only applies the field to the first word.
 - **Cost cap is per search round** (the initial search and each refine search). At current Exa prices (~$0.005 per search + $0.001 per page of text) four Exa adapters alone cost ~$0.03, so a whole multi-round job can't stay under $0.05. To keep each round well under the cap, Exa returns 3 results per adapter by default and the counter-view search goes through Exa only in Debate mode or when you ask for the other side (it always goes through OpenAlex). Run `npm run smoke` to see real numbers and adjust in Options.
-- **Brief 01 wasn't provided**; the scaffold follows CLAUDE.md (stack, layout, conventions). Citation formatters live in `src/shared/cite/` (not `background/cite/`) because the side panel re-formats instantly on mode switch.
+- **Brief 01 wasn't provided**; the scaffold follows CLAUDE.md (stack, layout, conventions). Citation formatters live in `src/shared/cite/` (not `background/cite/`) because the popup re-formats instantly on mode switch.
 - **A source with passages on both sides** is shown on your side (Support, or Pushback if you asked for the counter view) unless the other side's passage is much stronger.
-- **Page access** (`<all_urls>`) is an optional permission requested on the first search.
+- **No side panel.** Backed is a popup: a small "Find a source" button on highlighted text and a keyboard shortcut open an in-page card (an iframe of the extension's popup page in a closed shadow root); the toolbar icon opens the same UI as a normal extension popup. Because the "Find a source" button runs on every page, `<all_urls>` is a regular host permission rather than an optional one requested at first search. The popup page has to be web-accessible so it can appear inside pages; it only gets data with a one-time token the service worker gives its own content script, so a website embedding it gets nothing. The content script never reads the settings object that holds your keys.
+- **Esc closes the popup** (the search keeps running in the background); the Stop button stops a search.
 
 ## Not verifiable here
 
-These need a real Chrome profile and real keys, so they're manual checks: loading the unpacked build, the Google Docs hotkey, text-fragment links scrolling to the passage on real sites, rich-text paste into Google Docs/Word, and a reviewed `npm run smoke` run.
+These need a real Chrome profile and real keys, so they're manual checks: the Google Docs shortcut, the keyboard shortcut in general (Chrome handles shortcuts outside the page, so the automated check uses the button), rich-text paste into Google Docs/Word, and a reviewed `npm run smoke` run.
